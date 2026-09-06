@@ -1,0 +1,29 @@
+{
+  "name": "smartmotel-hub",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace @smartmotel/web",
+    "dev:api": "npm run start:dev --workspace @smartmotel/api",
+    "build": "npm run build --workspace @smartmotel/api && npm run build --workspace @smartmotel/web",
+    "db:generate": "npm run prisma:generate --workspace @smartmotel/api",
+    "db:migrate": "npm run prisma:migrate --workspace @smartmotel/api",
+    "db:deploy": "npm run prisma:deploy --workspace @smartmotel/api",
+    "db:seed": "npm run prisma:seed --workspace @smartmotel/api",
+    "db:studio": "npm run prisma:studio --workspace @smartmotel/api",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "allowScripts": {
+    "prisma@7.10.0": true,
+    "@prisma/engines@7.10.0": true,
+    "esbuild@0.28.2": true
+  }
+}
