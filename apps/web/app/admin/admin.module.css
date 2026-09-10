@@ -1,0 +1,306 @@
+.shell {
+  padding-bottom: 64px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 42px 0 24px;
+}
+
+.header h1 {
+  margin: 5px 0 8px;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  letter-spacing: -0.04em;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0 28px;
+}
+
+.statsGrid article {
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.statsGrid span {
+  display: block;
+  color: #64748b;
+  font-size: 0.82rem;
+  margin-bottom: 8px;
+}
+
+.statsGrid strong {
+  font-size: 1.9rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 20px;
+}
+
+.tabs button {
+  border: 0;
+  background: transparent;
+  padding: 12px 16px;
+  font: inherit;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.tabs .activeTab {
+  color: #0f172a;
+  border-bottom-color: currentColor;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+  align-items: center;
+}
+
+.toolbar input,
+.toolbar select {
+  min-height: 42px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0 12px;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.toolbar input {
+  flex: 1;
+}
+
+.listingList {
+  display: grid;
+  gap: 16px;
+}
+
+.listingCard {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+.cover {
+  min-height: 240px;
+  background: #f8fafc;
+}
+
+.cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.noImage {
+  height: 100%;
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  color: #64748b;
+}
+
+.listingMain {
+  padding: 22px;
+}
+
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.titleRow h2 {
+  margin: 4px 0 0;
+  font-size: 1.3rem;
+}
+
+.status,
+.role {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.pending { background: #fff8df; color: #8a5b00; }
+.approved { background: #eaf8ef; color: #176b3a; }
+.rejected { background: #fff0f0; color: #a02c2c; }
+.draft { background: #f2f4f7; color: #475467; }
+.hidden { background: #f2f4f7; color: #344054; }
+
+.price {
+  font-size: 1.22rem;
+  font-weight: 800;
+  margin: 14px 0 8px;
+}
+
+.price span {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 14px 0;
+  color: #64748b;
+  font-size: 0.86rem;
+}
+
+.adminInfo {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+  font-size: 0.87rem;
+}
+
+.adminInfo span {
+  color: #64748b;
+}
+
+.rejection {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #f1b7b7;
+  border-radius: 12px;
+  background: #fff7f7;
+  color: #8e2525;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.rejectBox {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.rejectBox label,
+.rejectBox textarea {
+  width: 100%;
+}
+
+.rejectBox label {
+  display: grid;
+  gap: 7px;
+  font-weight: 700;
+}
+
+.rejectBox textarea {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  resize: vertical;
+  font: inherit;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.rejectBox > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.userTableWrap {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.userTable {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+}
+
+.userTable th,
+.userTable td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+}
+
+.userTable th {
+  font-size: 0.78rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.userTable td:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.userTable td span,
+.userTable td small {
+  color: #64748b;
+}
+
+.userTable select {
+  min-height: 36px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0 8px;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.selfNote {
+  display: block;
+  margin-top: 5px;
+}
+
+@media (max-width: 1000px) {
+  .statsGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .listingCard { grid-template-columns: 190px 1fr; }
+}
+
+@media (max-width: 720px) {
+  .header { flex-direction: column; padding-top: 28px; }
+  .statsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .toolbar { align-items: stretch; flex-direction: column; }
+  .listingCard { grid-template-columns: 1fr; }
+  .cover, .noImage { min-height: 210px; }
+  .titleRow { flex-direction: column; }
+  .actions { align-items: stretch; flex-direction: column; }
+}

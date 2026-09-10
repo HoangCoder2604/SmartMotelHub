@@ -11,5 +11,5 @@ ENV NODE_ENV=development
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json ./
 COPY apps/web ./apps/web
-EXPOSE 3000
+EXPOSE 3001
 CMD ["npm", "run", "dev:web"]

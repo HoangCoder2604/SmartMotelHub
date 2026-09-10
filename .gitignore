@@ -6,5 +6,6 @@ coverage
 .env.*
 !.env.example
 apps/api/src/generated/prisma
+apps/api/uploads
 *.log
 .DS_Store

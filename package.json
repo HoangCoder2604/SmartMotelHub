@@ -1,6 +1,6 @@
 {
   "name": "smartmotel-hub",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "workspaces": [
     "apps/*"
@@ -24,6 +24,8 @@
   "allowScripts": {
     "prisma@7.10.0": true,
     "@prisma/engines@7.10.0": true,
-    "esbuild@0.28.2": true
+    "esbuild@0.28.2": true,
+    "@firebase/util@1.15.3": true,
+    "protobufjs@7.6.6": true
   }
 }
