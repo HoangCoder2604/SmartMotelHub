@@ -4,6 +4,7 @@ import { onAuthStateChanged, signOut, type User as FirebaseUser } from "firebase
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { ApiError, apiFetch } from "../lib/api";
 import { firebaseConfigured, getFirebaseAuth } from "../lib/firebase";
+import { disablePushNotifications } from "../lib/push-notifications";
 
 export type SmartMotelRole = "TENANT" | "LANDLORD" | "ADMIN";
 export type SmartMotelUser = {
@@ -102,10 +103,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     if (!firebaseConfigured) return;
+
+    // Gỡ token push khỏi user trước khi logout để tránh thông báo của tài khoản cũ
+    // tiếp tục xuất hiện trên máy dùng chung.
+    if (firebaseUser) {
+      try {
+        const idToken = await firebaseUser.getIdToken();
+        await disablePushNotifications(idToken);
+      } catch {
+        // Logout vẫn phải tiếp tục nếu FCM/browser push không khả dụng.
+      }
+    }
+
     await signOut(getFirebaseAuth());
     setProfile(null);
     setProfileError(null);
-  }, []);
+  }, [firebaseUser]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

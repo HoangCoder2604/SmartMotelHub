@@ -301,6 +301,9 @@ export default function ListingDetailPage() {
               <button className={favorited ? styles.secondary : styles.ghost} style={{ width: "100%", marginTop: 8 }} onClick={() => void toggleFavorite()} type="button">
                 {favorited ? "♥ Đã lưu phòng" : "♡ Lưu phòng"}
               </button>
+              {firebaseUser && profile?.role !== "ADMIN" && (
+                <Link className={styles.ghost} style={{ width: "100%", marginTop: 8, textAlign: "center" }} href={`/complaints?listingId=${listing.id}`}>⚑ Báo cáo tin</Link>
+              )}
 
               {bookingOpen && profile?.role === "TENANT" && (
                 <form className={appointmentStyles.bookingForm} onSubmit={submitBooking}>

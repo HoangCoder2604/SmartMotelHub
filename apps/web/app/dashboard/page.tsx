@@ -82,9 +82,9 @@ export default function DashboardPage() {
 
       <header className="dashboard-header">
         <div>
-          <p className="eyebrow">PHASE 7 · CONTRACTS, INVOICES & NOTIFICATIONS</p>
+          <p className="eyebrow">PHASE 8 · TRUST & SAFETY</p>
           <h1>Xin chào, {profile.fullName}</h1>
-          <p className="muted">Quản lý hợp đồng thuê, hóa đơn hàng tháng và thông báo trong ứng dụng.</p>
+          <p className="muted">Tiếp tục quản lý thuê phòng và bổ sung Trung tâm báo cáo / xử lý khiếu nại an toàn.</p>
         </div>
         <span className={`role-badge role-${profile.role.toLowerCase()}`}>{profile.role}</span>
       </header>
@@ -158,6 +158,20 @@ export default function DashboardPage() {
           <div><p className="eyebrow">NOTIFICATIONS</p><h2>Thông báo</h2><p>Nhận cập nhật về hợp đồng, hóa đơn, thanh toán và các thay đổi quan trọng.</p></div>
           <span className="action-arrow">→</span>
         </Link>
+        {profile.role !== "ADMIN" && (
+          <Link href="/complaints" className="dashboard-action-card">
+            <span className="action-icon">⚑</span>
+            <div><p className="eyebrow">TRUST & SAFETY</p><h2>Báo cáo & khiếu nại</h2><p>Báo cáo tin đáng ngờ và theo dõi trạng thái xử lý từ Admin.</p></div>
+            <span className="action-arrow">→</span>
+          </Link>
+        )}
+        {profile.role === "ADMIN" && (
+          <Link href="/admin/complaints" className="dashboard-action-card">
+            <span className="action-icon">⚑</span>
+            <div><p className="eyebrow">ADMIN TRUST & SAFETY</p><h2>Xử lý báo cáo</h2><p>Nhận, điều tra, giải quyết hoặc bác bỏ báo cáo người dùng.</p></div>
+            <span className="action-arrow">→</span>
+          </Link>
+        )}
         {profile.role === "ADMIN" && (
           <Link href="/admin" className="dashboard-action-card">
             <span className="action-icon">⚙</span>
@@ -183,7 +197,7 @@ export default function DashboardPage() {
           <h2>Backend RBAC</h2>
           <p className="muted">Backend kiểm tra Firebase token + PostgreSQL user + role trước khi cho truy cập.</p>
           <div className="rbac-result"><span>Role endpoint</span><strong>{rbac}</strong></div>
-          <p className="tiny muted">Contracts, Invoices và Notifications tiếp tục enforce ownership + RBAC ở backend.</p>
+          <p className="tiny muted">Contracts, Invoices, Notifications và Complaints tiếp tục enforce ownership + RBAC ở backend.</p>
         </article>
 
         <article className="info-card info-card-wide">

@@ -1,11 +1,12 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { ContractsModule } from "./contracts/contracts.module.js";
 import { AdminModule } from "./admin/admin.module.js";
 import { AmenitiesModule } from "./amenities/amenities.module.js";
 import { AppController } from "./app.controller.js";
 import { AppointmentsModule } from "./appointments/appointments.module.js";
 import { AuthModule } from "./auth/auth.module.js";
+import { ComplaintsModule } from "./complaints/complaints.module.js";
+import { ContractsModule } from "./contracts/contracts.module.js";
 import { DatabaseModule } from "./database/database.module.js";
 import { FavoritesModule } from "./favorites/favorites.module.js";
 import { InvoicesModule } from "./invoices/invoices.module.js";
@@ -30,6 +31,7 @@ import { RoomsModule } from "./rooms/rooms.module.js";
     NotificationsModule,
     ContractsModule,
     InvoicesModule,
+    ComplaintsModule,
     AdminModule,
   ],
   controllers: [AppController],

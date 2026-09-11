@@ -101,6 +101,7 @@ model User {
   complaintsAssigned   Complaint[]   @relation("ComplaintAssignedAdmin")
   reviewedListings      Listing[]     @relation("ListingReviewedByAdmin")
   notifications         Notification[]
+  pushDevices           PushDevice[]
 
   @@index([role])
   @@index([status])
@@ -365,6 +366,23 @@ model Notification {
   @@map("notifications")
 }
 
+
+model PushDevice {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  token      String   @unique @db.Text
+  platform   String   @default("WEB") @db.VarChar(20)
+  userAgent  String?  @map("user_agent") @db.VarChar(500)
+  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, lastSeenAt])
+  @@map("push_devices")
+}
+
 model Complaint {
   id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   reporterId     String          @map("reporter_id") @db.Uuid
@@ -372,10 +390,12 @@ model Complaint {
   listingId      String?         @map("listing_id") @db.Uuid
   type           String          @db.VarChar(100)
   description    String          @db.Text
-  evidenceUrl    String?         @map("evidence_url") @db.Text
-  status         ComplaintStatus @default(OPEN)
-  assignedAdminId String?        @map("assigned_admin_id") @db.Uuid
-  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  evidenceUrl     String?         @map("evidence_url") @db.Text
+  status          ComplaintStatus @default(OPEN)
+  assignedAdminId String?         @map("assigned_admin_id") @db.Uuid
+  adminNote       String?         @map("admin_note") @db.Text
+  resolvedAt      DateTime?       @map("resolved_at") @db.Timestamptz(6)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   reporter      User     @relation("ComplaintReporter", fields: [reporterId], references: [id], onDelete: Restrict)

@@ -1,6 +1,15 @@
 import { Injectable, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getAuth, type DecodedIdToken } from "firebase-admin/auth";
+import { getMessaging, type BatchResponse } from "firebase-admin/messaging";
+
+export type PushPayload = {
+  title: string;
+  body: string;
+  href?: string | null;
+  type?: string | null;
+  notificationId?: string | null;
+};
 
 @Injectable()
 export class FirebaseAdminService {
@@ -41,5 +50,37 @@ export class FirebaseAdminService {
       if (error instanceof ServiceUnavailableException) throw error;
       throw new UnauthorizedException("Firebase ID token không hợp lệ hoặc đã hết hạn.");
     }
+  }
+
+  async sendPushToTokens(tokens: string[], payload: PushPayload): Promise<BatchResponse[]> {
+    const uniqueTokens = [...new Set(tokens.filter(Boolean))];
+    if (!uniqueTokens.length) return [];
+
+    const results: BatchResponse[] = [];
+    const messaging = getMessaging(this.getFirebaseApp());
+
+    for (let offset = 0; offset < uniqueTokens.length; offset += 500) {
+      const chunk = uniqueTokens.slice(offset, offset + 500);
+      const response = await messaging.sendEachForMulticast({
+        tokens: chunk,
+        notification: {
+          title: payload.title,
+          body: payload.body,
+        },
+        data: {
+          title: payload.title,
+          body: payload.body,
+          href: payload.href ?? "/notifications",
+          type: payload.type ?? "GENERAL",
+          notificationId: payload.notificationId ?? "",
+        },
+        webpush: {
+          headers: { Urgency: "high" },
+        },
+      });
+      results.push(response);
+    }
+
+    return results;
   }
 }

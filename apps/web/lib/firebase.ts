@@ -20,12 +20,16 @@ export const firebaseConfigured = Boolean(
 let app: FirebaseApp | undefined;
 let auth: Auth | undefined;
 
-export function getFirebaseAuth(): Auth {
+export function getFirebaseApp(): FirebaseApp {
   if (!firebaseConfigured) {
-    throw new Error("Firebase Web chưa được cấu hình trong .env. Hãy điền NEXT_PUBLIC_FIREBASE_* trước khi dùng đăng nhập.");
+    throw new Error("Firebase Web chưa được cấu hình trong .env. Hãy điền NEXT_PUBLIC_FIREBASE_* trước khi sử dụng.");
   }
 
   app ??= getApps().length ? getApp() : initializeApp(firebaseConfig);
-  auth ??= getAuth(app);
+  return app;
+}
+
+export function getFirebaseAuth(): Auth {
+  auth ??= getAuth(getFirebaseApp());
   return auth;
 }
