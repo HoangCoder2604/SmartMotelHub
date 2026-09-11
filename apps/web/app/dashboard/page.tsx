@@ -82,9 +82,9 @@ export default function DashboardPage() {
 
       <header className="dashboard-header">
         <div>
-          <p className="eyebrow">PHASE 8 · TRUST & SAFETY</p>
+          <p className="eyebrow">PHASE 10 · ANALYTICS & REPORTING</p>
           <h1>Xin chào, {profile.fullName}</h1>
-          <p className="muted">Tiếp tục quản lý thuê phòng và bổ sung Trung tâm báo cáo / xử lý khiếu nại an toàn.</p>
+          <p className="muted">Theo dõi toàn bộ hành trình thuê phòng, thông báo đẩy và số liệu phân tích theo đúng quyền tài khoản.</p>
         </div>
         <span className={`role-badge role-${profile.role.toLowerCase()}`}>{profile.role}</span>
       </header>
@@ -153,6 +153,11 @@ export default function DashboardPage() {
             <span className="action-arrow">→</span>
           </Link>
         )}
+        <Link href="/analytics" className="dashboard-action-card">
+          <span className="action-icon">▥</span>
+          <div><p className="eyebrow">ANALYTICS & REPORTING</p><h2>Phân tích & báo cáo</h2><p>Xem chỉ số vận hành, hóa đơn, hợp đồng và xu hướng theo vai trò của bạn.</p></div>
+          <span className="action-arrow">→</span>
+        </Link>
         <Link href="/notifications" className="dashboard-action-card">
           <span className="action-icon">●</span>
           <div><p className="eyebrow">NOTIFICATIONS</p><h2>Thông báo</h2><p>Nhận cập nhật về hợp đồng, hóa đơn, thanh toán và các thay đổi quan trọng.</p></div>

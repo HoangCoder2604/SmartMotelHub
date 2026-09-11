@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { AdminModule } from "./admin/admin.module.js";
 import { AmenitiesModule } from "./amenities/amenities.module.js";
+import { AnalyticsModule } from "./analytics/analytics.module.js";
 import { AppController } from "./app.controller.js";
 import { AppointmentsModule } from "./appointments/appointments.module.js";
 import { AuthModule } from "./auth/auth.module.js";
@@ -33,6 +34,7 @@ import { RoomsModule } from "./rooms/rooms.module.js";
     InvoicesModule,
     ComplaintsModule,
     AdminModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
 })
