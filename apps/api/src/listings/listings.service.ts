@@ -1,4 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { access, mkdir, unlink, writeFile } from "node:fs/promises";
@@ -53,8 +54,16 @@ function detectImageExtension(buffer: Buffer): "jpg" | "png" | "webp" | null {
 @Injectable()
 export class ListingsService {
   private readonly uploadDir = join(process.cwd(), "uploads", "listings");
+  private readonly storageBucket = process.env.SUPABASE_STORAGE_BUCKET ?? "listing-images";
+  private readonly supabase: SupabaseClient | null;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    this.supabase = supabaseUrl && serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    }) : null;
+  }
 
   private ensureEditableStatus(status: ListingStatus) {
     if (!EDITABLE_LISTING_STATUSES.includes(status)) {
@@ -153,8 +162,36 @@ export class ListingsService {
     this.ensureEditableStatus(listing.status);
     if (listing.images.length >= 8) throw new BadRequestException("Mỗi tin đăng được tối đa 8 ảnh.");
 
-    await mkdir(this.uploadDir, { recursive: true });
     const filename = `${randomUUID()}.${extension}`;
+
+    if (this.supabase) {
+      const objectPath = `listings/${id}/${filename}`;
+      const contentType = extension === "png" ? "image/png" : extension === "webp" ? "image/webp" : "image/jpeg";
+      const { error: uploadError } = await this.supabase.storage.from(this.storageBucket).upload(objectPath, file.buffer, {
+        contentType,
+        upsert: false,
+        cacheControl: "31536000",
+      });
+      if (uploadError) throw new BadRequestException(`Không thể tải ảnh lên storage: ${uploadError.message}`);
+
+      const { data } = this.supabase.storage.from(this.storageBucket).getPublicUrl(objectPath);
+      try {
+        return await this.prisma.listingImage.create({
+          data: {
+            listingId: id,
+            url: data.publicUrl,
+            publicId: objectPath,
+            sortOrder: listing.images.length,
+          },
+        });
+      } catch (error) {
+        await this.supabase.storage.from(this.storageBucket).remove([objectPath]).catch(() => undefined);
+        throw error;
+      }
+    }
+
+    // Local-development fallback when Supabase Storage is not configured.
+    await mkdir(this.uploadDir, { recursive: true });
     const filePath = join(this.uploadDir, filename);
     await writeFile(filePath, file.buffer, { flag: "wx" });
 
@@ -181,7 +218,13 @@ export class ListingsService {
     if (!image) throw new NotFoundException("Không tìm thấy ảnh.");
 
     await this.prisma.listingImage.delete({ where: { id: imageId } });
-    if (image.publicId) await unlink(join(this.uploadDir, image.publicId)).catch(() => undefined);
+    if (image.publicId) {
+      if (this.supabase && image.publicId.includes("/")) {
+        await this.supabase.storage.from(this.storageBucket).remove([image.publicId]).catch(() => undefined);
+      } else {
+        await unlink(join(this.uploadDir, image.publicId)).catch(() => undefined);
+      }
+    }
     return { id: imageId };
   }
 

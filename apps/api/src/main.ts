@@ -21,9 +21,9 @@ async function bootstrap() {
 
   app.enableCors({ origin: allowedOrigins, credentials: true });
 
-  const port = Number(process.env.API_PORT ?? 4000);
+  const port = Number(process.env.PORT ?? process.env.API_PORT ?? 4000);
   await app.listen(port, "0.0.0.0");
-  console.log(`SmartMotel API running on http://localhost:${port}/api/v1`);
+  console.log(`SmartMotel API listening on port ${port} with prefix /api/v1`);
 }
 
 void bootstrap();

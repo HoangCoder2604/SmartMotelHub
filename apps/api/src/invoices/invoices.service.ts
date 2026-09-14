@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { ContractStatus, InvoiceStatus } from "../generated/prisma/client.js";
+import { randomBytes } from "node:crypto";
+import { ContractStatus, InvoiceStatus, PaymentProvider, PaymentStatus } from "../generated/prisma/client.js";
 import { PrismaService } from "../database/prisma.service.js";
 import { NotificationsService } from "../notifications/notifications.service.js";
 import { CreateInvoiceDto } from "./dto/create-invoice.dto.js";
@@ -157,14 +158,60 @@ export class InvoicesService {
       throw new BadRequestException("Hóa đơn này đã được đánh dấu PAID.");
     }
 
-    const updated = await this.prisma.invoice.update({
-      where: { id: invoice.id },
-      data: {
-        status: InvoiceStatus.PAID,
-        paidAt: new Date(),
-        paymentNote: dto.paymentNote?.trim() || null,
+    const now = new Date();
+    await this.prisma.payment.updateMany({
+      where: {
+        invoiceId: invoice.id,
+        provider: PaymentProvider.VNPAY,
+        status: PaymentStatus.PENDING,
+        expiresAt: { lte: now },
       },
-      include: invoiceInclude,
+      data: { status: PaymentStatus.EXPIRED, failedAt: now },
+    });
+
+    const activeOnlinePayment = await this.prisma.payment.findFirst({
+      where: {
+        invoiceId: invoice.id,
+        provider: PaymentProvider.VNPAY,
+        status: PaymentStatus.PENDING,
+        expiresAt: { gt: now },
+      },
+      select: { id: true, expiresAt: true },
+    });
+    if (activeOnlinePayment) {
+      throw new ConflictException(
+        "Hóa đơn đang có phiên thanh toán VNPAY còn hiệu lực. Hãy chờ phiên hết hạn hoặc để TENANT hoàn tất giao dịch trước khi xác nhận thủ công.",
+      );
+    }
+
+    const manualTxnRef = `MANUAL${Date.now()}${randomBytes(4).toString("hex").toUpperCase()}`;
+    const note = dto.paymentNote?.trim() || "Chủ nhà xác nhận thanh toán thủ công";
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const paidInvoice = await tx.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          status: InvoiceStatus.PAID,
+          paidAt: now,
+          paymentNote: note,
+        },
+        include: invoiceInclude,
+      });
+
+      await tx.payment.create({
+        data: {
+          invoiceId: invoice.id,
+          tenantId: invoice.contract.tenantId,
+          provider: PaymentProvider.MANUAL,
+          status: PaymentStatus.SUCCEEDED,
+          amount: invoice.total,
+          txnRef: manualTxnRef,
+          orderInfo: `Landlord manual confirmation ${invoice.billingMonth.toISOString().slice(0, 7)}`,
+          paidAt: now,
+        },
+      });
+
+      return paidInvoice;
     });
 
     await this.notifications.notify({

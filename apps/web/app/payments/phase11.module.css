@@ -1,0 +1,27 @@
+.page { min-height: 100vh; padding: 28px 20px 64px; }
+.shell { width: min(1180px, 100%); margin: 0 auto; }
+.hero { display: flex; justify-content: space-between; gap: 24px; align-items: end; margin: 42px 0 24px; }
+.hero h1 { margin: 4px 0 8px; font-size: clamp(2rem, 5vw, 3.8rem); line-height: .98; }
+.kicker { margin: 0; font-size: .76rem; letter-spacing: .16em; text-transform: uppercase; color: #7aa7ff; font-weight: 800; }
+.muted { color: #a8a8a8; }
+.alert { padding: 14px 16px; margin: 14px 0; border: 1px solid #4b4b4b; border-radius: 14px; background: rgba(255,255,255,.035); }
+.success { border-color: rgba(71, 196, 123, .55); }
+.danger { border-color: rgba(255, 100, 100, .55); }
+.grid { display: grid; gap: 16px; }
+.card { border: 1px solid #3b3b3b; border-radius: 18px; padding: 20px; background: #171818; }
+.cardHeader { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.card h2 { margin: 4px 0 6px; font-size: 1.22rem; }
+.amount { font-size: 1.5rem; font-weight: 800; margin: 16px 0 8px; }
+.details { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-top: 16px; }
+.details div { border-top: 1px solid #343434; padding-top: 10px; }
+.details span { display: block; color: #929292; font-size: .8rem; margin-bottom: 4px; }
+.status { display: inline-flex; border-radius: 999px; padding: 5px 10px; font-size: .72rem; font-weight: 900; letter-spacing: .05em; }
+.pending { background: rgba(243, 185, 61, .14); color: #f3c861; }
+.succeeded { background: rgba(65, 193, 117, .14); color: #70dc9c; }
+.failed, .cancelled, .expired { background: rgba(232, 92, 92, .13); color: #ff8d8d; }
+.provider { color: #8db5ff; font-weight: 800; }
+.empty { padding: 34px; text-align: center; border: 1px dashed #404040; border-radius: 18px; color: #999; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.resultIcon { font-size: 3.4rem; line-height: 1; }
+.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
+@media (max-width: 700px) { .hero, .cardHeader { align-items: flex-start; flex-direction: column; } }

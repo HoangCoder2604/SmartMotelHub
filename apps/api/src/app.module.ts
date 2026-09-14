@@ -13,6 +13,7 @@ import { FavoritesModule } from "./favorites/favorites.module.js";
 import { InvoicesModule } from "./invoices/invoices.module.js";
 import { ListingsModule } from "./listings/listings.module.js";
 import { NotificationsModule } from "./notifications/notifications.module.js";
+import { PaymentsModule } from "./payments/payments.module.js";
 import { PropertiesModule } from "./properties/properties.module.js";
 import { ReviewsModule } from "./reviews/reviews.module.js";
 import { RoomsModule } from "./rooms/rooms.module.js";
@@ -35,6 +36,7 @@ import { RoomsModule } from "./rooms/rooms.module.js";
     ComplaintsModule,
     AdminModule,
     AnalyticsModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
 })

@@ -57,6 +57,7 @@ export default function TenantInvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const [payingId, setPayingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !firebaseUser) router.replace("/auth/login");
@@ -80,6 +81,24 @@ export default function TenantInvoicesPage() {
 
   useEffect(() => { void load(); }, [firebaseUser, profile?.role]);
 
+  const payWithVnpay = async (invoiceId: string) => {
+    if (!firebaseUser || payingId) return;
+    setPayingId(invoiceId);
+    setMessage(null);
+    try {
+      const token = await firebaseUser.getIdToken();
+      const data = await apiFetch<{ checkoutUrl: string }>(
+        `/payments/invoices/${invoiceId}/vnpay`,
+        { method: "POST", body: JSON.stringify({}) },
+        token,
+      );
+      window.location.assign(data.checkoutUrl);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Không thể khởi tạo thanh toán VNPAY.");
+      setPayingId(null);
+    }
+  };
+
   if (authLoading || (loading && !invoices.length)) {
     return <main className={styles.page}><div className={styles.shell}><div className={styles.empty}>Đang tải hóa đơn…</div></div></main>;
   }
@@ -89,7 +108,7 @@ export default function TenantInvoicesPage() {
       <div className={styles.shell}>
         <nav className="topbar">
           <Link href="/dashboard" className="brand">SmartMotel Hub</Link>
-          <div className="topbar-actions"><Link href="/contracts" className="button button-ghost button-small">Hợp đồng</Link><Link href="/notifications" className="button button-ghost button-small">Thông báo</Link></div>
+          <div className="topbar-actions"><Link href="/contracts" className="button button-ghost button-small">Hợp đồng</Link><Link href="/payments" className="button button-ghost button-small">Lịch sử thanh toán</Link><Link href="/notifications" className="button button-ghost button-small">Thông báo</Link></div>
         </nav>
 
         <header className={styles.hero}>
@@ -118,9 +137,21 @@ export default function TenantInvoicesPage() {
 
                 <div className={styles.invoiceTotal}>Tổng: {money(invoice.total)}</div>
                 <p className={styles.muted}>Hạn thanh toán: {dateLabel(invoice.dueDate)}</p>
+                {invoice.status !== "PAID" && (
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
+                    <button
+                      className="button button-primary"
+                      disabled={payingId === invoice.id}
+                      onClick={() => void payWithVnpay(invoice.id)}
+                    >
+                      {payingId === invoice.id ? "Đang chuyển sang VNPAY…" : "Thanh toán qua VNPAY"}
+                    </button>
+                    <Link className="button button-secondary" href="/payments">Lịch sử giao dịch</Link>
+                  </div>
+                )}
                 {invoice.paidAt && <p className={styles.muted}>Đã xác nhận thanh toán: {new Date(invoice.paidAt).toLocaleString("vi-VN")}</p>}
                 {invoice.paymentNote && <div className={styles.alert}><strong>Ghi chú:</strong> {invoice.paymentNote}</div>}
-                {invoice.status === "OVERDUE" && <div className={styles.alert}>Hóa đơn đã quá hạn. Hãy liên hệ chủ nhà để xử lý thanh toán.</div>}
+                {invoice.status === "OVERDUE" && <div className={styles.alert}>Hóa đơn đã quá hạn. Bạn vẫn có thể thanh toán trực tuyến qua VNPAY.</div>}
               </article>
             ))}
           </section>

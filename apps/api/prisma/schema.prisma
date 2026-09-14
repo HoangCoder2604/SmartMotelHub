@@ -74,6 +74,19 @@ enum ComplaintStatus {
   REJECTED
 }
 
+enum PaymentProvider {
+  VNPAY
+  MANUAL
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
 model User {
   id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email          String?    @unique @db.VarChar(255)
@@ -102,6 +115,7 @@ model User {
   reviewedListings      Listing[]     @relation("ListingReviewedByAdmin")
   notifications         Notification[]
   pushDevices           PushDevice[]
+  payments              Payment[]
 
   @@index([role])
   @@index([status])
@@ -343,11 +357,47 @@ model Invoice {
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contract Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  payments Payment[]
 
   @@unique([contractId, billingMonth])
   @@index([status, dueDate])
   @@map("invoices")
+}
+
+model Payment {
+  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoiceId            String          @map("invoice_id") @db.Uuid
+  tenantId             String          @map("tenant_id") @db.Uuid
+  provider             PaymentProvider
+  status               PaymentStatus   @default(PENDING)
+  amount               Decimal         @db.Decimal(14, 2)
+  txnRef               String          @unique @map("txn_ref") @db.VarChar(100)
+  checkoutUrl          String?         @map("checkout_url") @db.Text
+  orderInfo            String          @map("order_info") @db.VarChar(255)
+  gatewayTransactionNo String?         @map("gateway_transaction_no") @db.VarChar(50)
+  bankCode             String?         @map("bank_code") @db.VarChar(30)
+  cardType             String?         @map("card_type") @db.VarChar(30)
+  responseCode         String?         @map("response_code") @db.VarChar(10)
+  transactionStatus    String?         @map("transaction_status") @db.VarChar(10)
+  gatewayPayDate       DateTime?       @map("gateway_pay_date") @db.Timestamptz(6)
+  expiresAt            DateTime?       @map("expires_at") @db.Timestamptz(6)
+  paidAt               DateTime?       @map("paid_at") @db.Timestamptz(6)
+  failedAt             DateTime?       @map("failed_at") @db.Timestamptz(6)
+  returnReceivedAt     DateTime?       @map("return_received_at") @db.Timestamptz(6)
+  ipnReceivedAt        DateTime?       @map("ipn_received_at") @db.Timestamptz(6)
+  rawReturn            Json?           @map("raw_return") @db.JsonB
+  rawIpn               Json?           @map("raw_ipn") @db.JsonB
+  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  tenant  User    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId, status])
+  @@index([tenantId, createdAt])
+  @@index([provider, gatewayTransactionNo])
+  @@map("payments")
 }
 
 model Notification {

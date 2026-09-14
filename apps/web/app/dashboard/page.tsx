@@ -82,9 +82,9 @@ export default function DashboardPage() {
 
       <header className="dashboard-header">
         <div>
-          <p className="eyebrow">PHASE 10 · ANALYTICS & REPORTING</p>
+          <p className="eyebrow">PHASE 11 · VNPAY PAYMENTS</p>
           <h1>Xin chào, {profile.fullName}</h1>
-          <p className="muted">Theo dõi toàn bộ hành trình thuê phòng, thông báo đẩy và số liệu phân tích theo đúng quyền tài khoản.</p>
+          <p className="muted">Theo dõi toàn bộ hành trình thuê phòng, thanh toán VNPAY, thông báo đẩy và số liệu phân tích theo đúng quyền tài khoản.</p>
         </div>
         <span className={`role-badge role-${profile.role.toLowerCase()}`}>{profile.role}</span>
       </header>
@@ -115,6 +115,13 @@ export default function DashboardPage() {
           <Link href="/landlord/contracts" className="dashboard-action-card">
             <span className="action-icon">▤</span>
             <div><p className="eyebrow">LANDLORD RENTAL</p><h2>Hợp đồng & hóa đơn</h2><p>Tạo hợp đồng từ lịch COMPLETED, quản lý tiền thuê và xác nhận thanh toán.</p></div>
+            <span className="action-arrow">→</span>
+          </Link>
+        )}
+        {profile.role === "LANDLORD" && (
+          <Link href="/landlord/payments" className="dashboard-action-card">
+            <span className="action-icon">₫</span>
+            <div><p className="eyebrow">LANDLORD PAYMENTS</p><h2>Thanh toán đã nhận</h2><p>Đối soát VNPAY và các khoản thanh toán thủ công thuộc nhà trọ của bạn.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
@@ -153,6 +160,13 @@ export default function DashboardPage() {
             <span className="action-arrow">→</span>
           </Link>
         )}
+        {profile.role === "TENANT" && (
+          <Link href="/payments" className="dashboard-action-card">
+            <span className="action-icon">◎</span>
+            <div><p className="eyebrow">VNPAY & PAYMENT HISTORY</p><h2>Thanh toán trực tuyến</h2><p>Thanh toán hóa đơn qua VNPAY Sandbox và xem lịch sử giao dịch chi tiết.</p></div>
+            <span className="action-arrow">→</span>
+          </Link>
+        )}
         <Link href="/analytics" className="dashboard-action-card">
           <span className="action-icon">▥</span>
           <div><p className="eyebrow">ANALYTICS & REPORTING</p><h2>Phân tích & báo cáo</h2><p>Xem chỉ số vận hành, hóa đơn, hợp đồng và xu hướng theo vai trò của bạn.</p></div>
@@ -174,6 +188,13 @@ export default function DashboardPage() {
           <Link href="/admin/complaints" className="dashboard-action-card">
             <span className="action-icon">⚑</span>
             <div><p className="eyebrow">ADMIN TRUST & SAFETY</p><h2>Xử lý báo cáo</h2><p>Nhận, điều tra, giải quyết hoặc bác bỏ báo cáo người dùng.</p></div>
+            <span className="action-arrow">→</span>
+          </Link>
+        )}
+        {profile.role === "ADMIN" && (
+          <Link href="/admin/payments" className="dashboard-action-card">
+            <span className="action-icon">₫</span>
+            <div><p className="eyebrow">ADMIN PAYMENT AUDIT</p><h2>Đối soát thanh toán</h2><p>Xem lịch sử VNPAY, giao dịch thủ công, mã gateway và trạng thái toàn hệ thống.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}

@@ -10,7 +10,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       throw new Error("DATABASE_URL is required");
     }
 
-    const adapter = new PrismaPg({ connectionString });
+    const adapter = new PrismaPg({
+      connectionString,
+      max: Number(process.env.DATABASE_POOL_MAX ?? 2),
+      idleTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 10_000,
+    });
     super({ adapter });
   }
 
