@@ -47,14 +47,17 @@ function sortParams(input: Record<string, string>) {
     .sort(([a], [b]) => a.localeCompare(b));
 }
 
-function hashData(input: Record<string, string>) {
-  return sortParams(input).map(([key, value]) => `${key}=${value}`).join("&");
-}
-
 function queryString(input: Record<string, string>) {
   const params = new URLSearchParams();
   for (const [key, value] of sortParams(input)) params.append(key, value);
   return params.toString();
+}
+
+function hashData(input: Record<string, string>) {
+  // VNPAY signs the same canonical, URL-encoded query string that is sent
+  // to the gateway. Keeping signing and URL generation identical avoids
+  // checksum mismatches for values such as ReturnUrl and OrderInfo.
+  return queryString(input);
 }
 
 function formatVnpDate(date: Date) {
