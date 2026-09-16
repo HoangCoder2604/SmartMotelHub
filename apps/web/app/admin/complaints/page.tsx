@@ -39,7 +39,7 @@ export default function AdminComplaintsPage() {
 
   useEffect(() => {
     if (!loading && !firebaseUser) router.replace("/auth/login");
-    else if (!loading && profile && profile.role !== "ADMIN") router.replace("/dashboard");
+    else if (!loading && profile && profile.role !== "ADMIN") router.replace("/forbidden");
   }, [firebaseUser, loading, profile, router]);
 
   const getToken = useCallback(async () => {

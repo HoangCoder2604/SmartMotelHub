@@ -112,7 +112,7 @@ export default function LandlordContractsPage() {
 
   useEffect(() => {
     if (!authLoading && !firebaseUser) router.replace("/auth/login");
-    if (!authLoading && profile && profile.role !== "LANDLORD") router.replace("/dashboard");
+    if (!authLoading && profile && profile.role !== "LANDLORD") router.replace("/forbidden");
   }, [authLoading, firebaseUser, profile, router]);
 
   const load = async () => {

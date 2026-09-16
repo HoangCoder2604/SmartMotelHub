@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from "@nestjs/common";
+import { Controller, Get, Header, Param, Query } from "@nestjs/common";
 import { ListPublicListingsQueryDto } from "./dto/list-public-listings-query.dto.js";
 import { ListingsService } from "./listings.service.js";
 
@@ -7,6 +7,7 @@ export class PublicListingsController {
   constructor(private readonly listingsService: ListingsService) {}
 
   @Get()
+  @Header("Cache-Control", "public, s-maxage=30, stale-while-revalidate=120")
   async list(@Query() query: ListPublicListingsQueryDto) {
     return { success: true, data: await this.listingsService.listPublic(query) };
   }

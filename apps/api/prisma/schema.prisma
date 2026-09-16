@@ -386,6 +386,7 @@ model Payment {
   failedAt             DateTime?       @map("failed_at") @db.Timestamptz(6)
   returnReceivedAt     DateTime?       @map("return_received_at") @db.Timestamptz(6)
   ipnReceivedAt        DateTime?       @map("ipn_received_at") @db.Timestamptz(6)
+  tenantHiddenAt       DateTime?       @map("tenant_hidden_at") @db.Timestamptz(6)
   rawReturn            Json?           @map("raw_return") @db.JsonB
   rawIpn               Json?           @map("raw_ipn") @db.JsonB
   createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -396,6 +397,8 @@ model Payment {
 
   @@index([invoiceId, status])
   @@index([tenantId, createdAt])
+  @@index([tenantId, tenantHiddenAt, createdAt])
+  @@index([status, createdAt])
   @@index([provider, gatewayTransactionNo])
   @@map("payments")
 }

@@ -21,15 +21,14 @@ type NotificationItem = {
   readAt: string | null;
   createdAt: string;
 };
-
-type PushStatus = {
-  registeredDevices: number;
-};
+type Pagination = { page: number; limit: number; total: number; totalPages: number };
+type PushStatus = { registeredDevices: number };
 
 export default function NotificationsPage() {
   const router = useRouter();
   const { loading: authLoading, firebaseUser } = useAuth();
   const [items, setItems] = useState<NotificationItem[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 20, total: 0, totalPages: 0 });
   const [unreadCount, setUnreadCount] = useState(0);
   const [registeredDevices, setRegisteredDevices] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -45,17 +44,18 @@ export default function NotificationsPage() {
     return Notification.permission;
   }, [pushBusy]);
 
-  const load = async () => {
+  const load = async (page = pagination.page || 1) => {
     if (!firebaseUser) return;
     setLoading(true);
     try {
       const token = await firebaseUser.getIdToken();
       const [notificationData, pushData] = await Promise.all([
-        apiFetch<{ items: NotificationItem[]; unreadCount: number }>("/notifications", {}, token),
+        apiFetch<{ items: NotificationItem[]; unreadCount: number; pagination: Pagination }>(`/notifications?page=${page}&limit=20`, {}, token),
         apiFetch<PushStatus>("/notifications/push/status", {}, token),
       ]);
       setItems(notificationData.items);
       setUnreadCount(notificationData.unreadCount);
+      setPagination(notificationData.pagination);
       setRegisteredDevices(pushData.registeredDevices);
       setMessage(null);
     } catch (error) {
@@ -66,7 +66,7 @@ export default function NotificationsPage() {
   };
 
   useEffect(() => {
-    void load();
+    void load(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firebaseUser]);
 
@@ -75,11 +75,7 @@ export default function NotificationsPage() {
     try {
       const token = await firebaseUser.getIdToken();
       await apiFetch(`/notifications/${item.id}/read`, { method: "PATCH" }, token);
-      setItems((current) =>
-        current.map((value) =>
-          value.id === item.id ? { ...value, readAt: new Date().toISOString() } : value,
-        ),
-      );
+      setItems((current) => current.map((value) => value.id === item.id ? { ...value, readAt: new Date().toISOString() } : value));
       setUnreadCount((current) => Math.max(0, current - 1));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không thể cập nhật thông báo.");
@@ -104,8 +100,8 @@ export default function NotificationsPage() {
     try {
       const token = await firebaseUser.getIdToken();
       await apiFetch(`/notifications/${item.id}`, { method: "DELETE" }, token);
-      setItems((current) => current.filter((value) => value.id !== item.id));
-      if (!item.readAt) setUnreadCount((current) => Math.max(0, current - 1));
+      const nextPage = items.length === 1 && pagination.page > 1 ? pagination.page - 1 : pagination.page;
+      await load(nextPage);
       setMessage("Đã xóa thông báo.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không thể xóa thông báo.");
@@ -114,21 +110,11 @@ export default function NotificationsPage() {
 
   const deleteRead = async () => {
     if (!firebaseUser) return;
-    const readCount = items.filter((item) => item.readAt).length;
-    if (!readCount) {
-      setMessage("Không có thông báo đã đọc để xóa.");
-      return;
-    }
-    if (!window.confirm(`Xóa ${readCount} thông báo đã đọc?`)) return;
-
+    if (!window.confirm("Xóa toàn bộ thông báo đã đọc của tài khoản?")) return;
     try {
       const token = await firebaseUser.getIdToken();
-      const result = await apiFetch<{ deletedCount: number }>(
-        "/notifications/read",
-        { method: "DELETE" },
-        token,
-      );
-      setItems((current) => current.filter((item) => !item.readAt));
+      const result = await apiFetch<{ deletedCount: number }>("/notifications/read", { method: "DELETE" }, token);
+      await load(1);
       setMessage(`Đã xóa ${result.deletedCount} thông báo đã đọc.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không thể xóa thông báo đã đọc.");
@@ -136,18 +122,12 @@ export default function NotificationsPage() {
   };
 
   const deleteAll = async () => {
-    if (!firebaseUser || !items.length) return;
+    if (!firebaseUser || pagination.total === 0) return;
     if (!window.confirm("Bạn có chắc muốn xóa toàn bộ thông báo của tài khoản này?")) return;
-
     try {
       const token = await firebaseUser.getIdToken();
-      const result = await apiFetch<{ deletedCount: number }>(
-        "/notifications/all",
-        { method: "DELETE" },
-        token,
-      );
-      setItems([]);
-      setUnreadCount(0);
+      const result = await apiFetch<{ deletedCount: number }>("/notifications/all", { method: "DELETE" }, token);
+      await load(1);
       setMessage(`Đã xóa ${result.deletedCount} thông báo.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không thể xóa toàn bộ thông báo.");
@@ -164,15 +144,11 @@ export default function NotificationsPage() {
         setMessage("Đã bật thông báo đẩy FCM cho trình duyệt này.");
         await load();
       } else if (result.permission === "denied") {
-        setMessage("Trình duyệt đang chặn thông báo. Hãy cấp quyền Notifications cho localhost:3001 rồi thử lại.");
-      } else {
-        setMessage("Bạn chưa cấp quyền nhận thông báo.");
-      }
+        setMessage("Trình duyệt đang chặn thông báo. Hãy cấp quyền Notifications cho website rồi thử lại.");
+      } else setMessage("Bạn chưa cấp quyền nhận thông báo.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không thể bật thông báo đẩy.");
-    } finally {
-      setPushBusy(false);
-    }
+    } finally { setPushBusy(false); }
   };
 
   const disablePush = async () => {
@@ -181,13 +157,11 @@ export default function NotificationsPage() {
     try {
       const idToken = await firebaseUser.getIdToken();
       await disablePushNotifications(idToken);
-      setMessage("Đã tắt FCM push cho thiết bị hiện tại. Quyền trình duyệt vẫn có thể còn ở trạng thái Allow.");
+      setMessage("Đã tắt FCM push cho thiết bị hiện tại.");
       await load();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không thể tắt thông báo đẩy.");
-    } finally {
-      setPushBusy(false);
-    }
+    } finally { setPushBusy(false); }
   };
 
   const sendTest = async () => {
@@ -196,24 +170,14 @@ export default function NotificationsPage() {
     try {
       const idToken = await firebaseUser.getIdToken();
       await apiFetch("/notifications/push/test", { method: "POST" }, idToken);
-      setMessage("Đã gửi thông báo thử. Nếu FCM hoạt động, thông báo trình duyệt sẽ xuất hiện ngay.");
+      setMessage("Đã gửi thông báo thử.");
       window.setTimeout(() => void load(), 400);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không thể gửi thông báo thử.");
-    } finally {
-      setPushBusy(false);
-    }
+    } finally { setPushBusy(false); }
   };
 
-  if (authLoading || (loading && !items.length)) {
-    return (
-      <main className={styles.page}>
-        <div className={styles.shell}>
-          <div className={styles.empty}>Đang tải thông báo…</div>
-        </div>
-      </main>
-    );
-  }
+  if (authLoading || (loading && !items.length)) return <main className={styles.page}><div className={styles.shell}><div className="skeleton skeleton-card" /></div></main>;
 
   return (
     <main className={styles.page}>
@@ -221,81 +185,43 @@ export default function NotificationsPage() {
         <nav className="topbar">
           <Link href="/dashboard" className="brand">SmartMotel Hub</Link>
           <div className="topbar-actions">
-            <button className="button button-ghost button-small" onClick={() => void markAll()} type="button">
-              Đọc tất cả
-            </button>
-            <button className="button button-ghost button-small" onClick={() => void deleteRead()} type="button">
-              Xóa đã đọc
-            </button>
-            <button className="button button-ghost button-small" onClick={() => void deleteAll()} type="button">
-              Xóa tất cả
-            </button>
+            <button className="button button-ghost button-small" onClick={() => void markAll()} type="button">Đọc tất cả</button>
+            <button className="button button-ghost button-small" onClick={() => void deleteRead()} type="button">Xóa đã đọc</button>
+            <button className="button button-ghost button-small" onClick={() => void deleteAll()} type="button">Xóa tất cả</button>
           </div>
         </nav>
 
-        <header className={styles.hero}>
-          <div>
-            <p className={styles.kicker}>IN-APP + FIREBASE CLOUD MESSAGING</p>
-            <h1>Thông báo</h1>
-            <p>{unreadCount} thông báo chưa đọc. Phase 9 bổ sung push notification ngay cả khi tab đang ở nền.</p>
-          </div>
-        </header>
-
+        <header className={styles.hero}><div><p className={styles.kicker}>IN-APP + FIREBASE CLOUD MESSAGING</p><h1>Thông báo</h1><p>{unreadCount} chưa đọc · {pagination.total} thông báo.</p></div></header>
         {message && <div className={styles.alert}>{message}</div>}
 
         <section className={styles.form}>
-          <p className={styles.kicker}>PUSH NOTIFICATION</p>
-          <h2>Thông báo trình duyệt</h2>
+          <p className={styles.kicker}>PUSH NOTIFICATION</p><h2>Thông báo trình duyệt</h2>
           <div className={styles.details}>
             <div><span>FCM Web Push</span><strong>{pushConfigured ? "Đã cấu hình VAPID" : "Chưa cấu hình VAPID"}</strong></div>
             <div><span>Quyền trình duyệt</span><strong>{browserPermission}</strong></div>
-            <div><span>Thiết bị đã đăng ký cho tài khoản</span><strong>{registeredDevices}</strong></div>
+            <div><span>Thiết bị đã đăng ký</span><strong>{registeredDevices}</strong></div>
           </div>
           <div className={styles.actions}>
-            <button className={styles.primary} disabled={pushBusy || !pushConfigured} onClick={() => void enablePush()} type="button">
-              {pushBusy ? "Đang xử lý…" : "Bật thông báo trình duyệt"}
-            </button>
-            <button className={styles.secondary} disabled={pushBusy || !pushConfigured} onClick={() => void sendTest()} type="button">
-              Gửi thông báo thử
-            </button>
-            <button className={styles.ghost} disabled={pushBusy || !pushConfigured} onClick={() => void disablePush()} type="button">
-              Tắt trên thiết bị này
-            </button>
+            <button className={styles.primary} disabled={pushBusy || !pushConfigured} onClick={() => void enablePush()} type="button">{pushBusy ? "Đang xử lý…" : "Bật thông báo trình duyệt"}</button>
+            <button className={styles.secondary} disabled={pushBusy || !pushConfigured} onClick={() => void sendTest()} type="button">Gửi thông báo thử</button>
+            <button className={styles.ghost} disabled={pushBusy || !pushConfigured} onClick={() => void disablePush()} type="button">Tắt trên thiết bị này</button>
           </div>
-          {!pushConfigured && (
-            <p className={styles.muted}>Thêm NEXT_PUBLIC_FIREBASE_VAPID_KEY vào apps/web/.env.local rồi restart npm run dev:web.</p>
-          )}
         </section>
 
-        {!items.length ? (
-          <div className={styles.empty}>Chưa có thông báo nào.</div>
-        ) : (
-          <section className={styles.grid}>
-            {items.map((item) => (
-              <article className={`${styles.card} ${!item.readAt ? styles.unread : ""}`} key={item.id}>
-                <div className={styles.notification}>
-                  <div>
-                    <p className={styles.kicker}>{item.type}</p>
-                    <h2>{item.title}</h2>
-                    <p className={styles.muted}>{item.message}</p>
-                    <p className={styles.time}>{new Date(item.createdAt).toLocaleString("vi-VN")}</p>
-                  </div>
-                  <div className={styles.actions}>
-                    {!item.readAt && (
-                      <button className={styles.ghost} onClick={() => void markRead(item)} type="button">Đã đọc</button>
-                    )}
-                    <button className={styles.ghost} onClick={() => void deleteOne(item)} type="button">Xóa</button>
-                  </div>
-                </div>
-                {item.href && (
-                  <div className={styles.actions}>
-                    <Link className={styles.secondary} href={item.href} onClick={() => void markRead(item)}>Mở</Link>
-                  </div>
-                )}
-              </article>
-            ))}
-          </section>
-        )}
+        {!items.length ? <div className={styles.empty}>Chưa có thông báo nào.</div> : <section className={styles.grid}>{items.map((item) => (
+          <article className={`${styles.card} ${!item.readAt ? styles.unread : ""}`} key={item.id}>
+            <div className={styles.notification}><div><p className={styles.kicker}>{item.type}</p><h2>{item.title}</h2><p className={styles.muted}>{item.message}</p><p className={styles.time}>{new Date(item.createdAt).toLocaleString("vi-VN")}</p></div>
+              <div className={styles.actions}>{!item.readAt && <button className={styles.ghost} onClick={() => void markRead(item)} type="button">Đã đọc</button>}<button className={styles.ghost} onClick={() => void deleteOne(item)} type="button">Xóa</button></div>
+            </div>
+            {item.href && <div className={styles.actions}><Link className={styles.secondary} href={item.href} onClick={() => void markRead(item)}>Mở</Link></div>}
+          </article>
+        ))}</section>}
+
+        {pagination.totalPages > 1 && <div className={styles.actions}>
+          <button className={styles.ghost} disabled={pagination.page <= 1 || loading} onClick={() => void load(pagination.page - 1)} type="button">← Trước</button>
+          <span className={styles.muted}>Trang {pagination.page} / {pagination.totalPages}</span>
+          <button className={styles.ghost} disabled={pagination.page >= pagination.totalPages || loading} onClick={() => void load(pagination.page + 1)} type="button">Sau →</button>
+        </div>}
       </div>
     </main>
   );

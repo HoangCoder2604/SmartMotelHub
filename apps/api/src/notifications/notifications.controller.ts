@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Headers, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Headers, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { type User } from "../generated/prisma/client.js";
 import { CurrentUser } from "../auth/decorators/current-user.decorator.js";
 import { FirebaseAuthGuard } from "../auth/guards/firebase-auth.guard.js";
 import { RegisteredUserGuard } from "../auth/guards/registered-user.guard.js";
+import { ListNotificationsQueryDto } from "./dto/list-notifications-query.dto.js";
 import { RegisterPushDeviceDto } from "./dto/register-push-device.dto.js";
 import { UnregisterPushDeviceDto } from "./dto/unregister-push-device.dto.js";
 import { NotificationsService } from "./notifications.service.js";
@@ -13,8 +14,8 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get()
-  async list(@CurrentUser() user: User) {
-    return { success: true, data: await this.notificationsService.list(user.id) };
+  async list(@CurrentUser() user: User, @Query() query: ListNotificationsQueryDto) {
+    return { success: true, data: await this.notificationsService.list(user.id, query.page, query.limit) };
   }
 
   @Get("push/status")

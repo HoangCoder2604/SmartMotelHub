@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "../../components/auth-provider";
 import { apiAssetUrl, apiFetch } from "../../lib/api";
 import styles from "./admin.module.css";
+import { SafeImage } from "../../components/safe-image";
 
 type ListingStatus = "DRAFT" | "PENDING" | "APPROVED" | "REJECTED" | "HIDDEN";
 type UserRole = "TENANT" | "LANDLORD" | "ADMIN";
@@ -83,7 +84,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!loading && !firebaseUser) router.replace("/auth/login");
-    else if (!loading && profile && profile.role !== "ADMIN") router.replace("/dashboard");
+    else if (!loading && profile && profile.role !== "ADMIN") router.replace("/forbidden");
   }, [firebaseUser, loading, profile, router]);
 
   const token = useCallback(async () => {
@@ -278,7 +279,7 @@ export default function AdminPage() {
                 <article className={styles.listingCard} key={listing.id}>
                   <div className={styles.cover}>
                     {listing.images[0]
-                      ? <img src={apiAssetUrl(listing.images[0].url)} alt={listing.title} />
+                      ? <SafeImage src={apiAssetUrl(listing.images[0].url)} alt={listing.title} />
                       : <div className={styles.noImage}>Chưa có ảnh</div>}
                   </div>
                   <div className={styles.listingMain}>

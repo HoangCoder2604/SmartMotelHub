@@ -7,6 +7,7 @@ import { useAuth } from "../../../components/auth-provider";
 import { apiAssetUrl, apiFetch } from "../../../lib/api";
 import appointmentStyles from "../../appointments/phase6.module.css";
 import styles from "../phase5.module.css";
+import { SafeImage } from "../../../components/safe-image";
 
 type Listing = {
   id: string;
@@ -199,13 +200,13 @@ export default function ListingDetailPage() {
         <div className={styles.detailLayout}>
           <article className={styles.detailMain}>
             <div className={styles.galleryMain}>
-              {currentImage ? <img src={apiAssetUrl(currentImage.url)} alt={listing.title} /> : <div className={styles.noImage}>Chưa có ảnh</div>}
+              {currentImage ? <SafeImage src={apiAssetUrl(currentImage.url)} alt={listing.title} eager /> : <div className={styles.noImage}>Chưa có ảnh</div>}
             </div>
             {listing.images.length > 1 && (
               <div className={styles.thumbs}>
                 {listing.images.map((image, index) => (
                   <button className={`${styles.thumb} ${selectedImage === index ? styles.thumbActive : ""}`} key={image.id} onClick={() => setSelectedImage(index)} type="button">
-                    <img src={apiAssetUrl(image.url)} alt={`Ảnh ${index + 1}`} />
+                    <SafeImage src={apiAssetUrl(image.url)} alt={`Ảnh ${index + 1}`} />
                   </button>
                 ))}
               </div>
@@ -280,7 +281,7 @@ export default function ListingDetailPage() {
                 <div className={styles.similarGrid}>
                   {listing.similarListings.map((item) => (
                     <Link className={styles.similarCard} href={`/listings/${item.id}`} key={item.id}>
-                      {item.images[0] ? <img src={apiAssetUrl(item.images[0].url)} alt={item.title} /> : <div className={styles.noImage}>Chưa có ảnh</div>}
+                      {item.images[0] ? <SafeImage src={apiAssetUrl(item.images[0].url)} alt={item.title} /> : <div className={styles.noImage}>Chưa có ảnh</div>}
                       <div><strong>{item.title}</strong><span>{money(item.room.price)} / tháng</span></div>
                     </Link>
                   ))}

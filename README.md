@@ -1,11 +1,18 @@
-# SmartMotel Hub — Phase 2 Dashboard Loading Hotfix
+# SmartMotel Hub
 
-Copy `apps/` vào root project hiện tại và chọn **Replace**.
+Full-stack room search / rental management platform built with Next.js, NestJS, PostgreSQL/PostGIS, Prisma, Firebase and Supabase.
 
-Hotfix:
-- Email login chỉ dùng 1 token refresh + 1 API sync/profile request thay vì nhiều request tuần tự.
-- Profile trả về từ backend được hydrate trực tiếp vào AuthProvider.
-- Dashboard render ngay khi profile đã có, không chờ auth observer request nền.
-- Nếu profile load lỗi, Dashboard hiển thị lỗi + nút Thử lại thay vì spinner vô hạn.
+Current roadmap status: **Phase 12 — Production Optimization & UX Hardening**.
 
-Không cần npm install, Prisma migration hay thay `.env`.
+See:
+
+- `PHASE12-README.md` — production optimization, payment-history cleanup, image migration and test checklist.
+- `DEPLOY-VERCEL-SUPABASE.md` — Vercel/Supabase deployment.
+- `PHASE11-README.md` — VNPAY payments.
+
+Main workspaces:
+
+```text
+apps/web  -> Next.js frontend
+apps/api  -> NestJS API + Prisma
+```

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useAuth } from "../../../../components/auth-provider";
 import { apiAssetUrl, apiFetch, apiUpload } from "../../../../lib/api";
+import { SafeImage } from "../../../../components/safe-image";
 
 type Amenity = { id: string; code: string; name: string; category: string | null };
 type ListingImage = { id: string; url: string; sortOrder: number };
@@ -80,7 +81,7 @@ export default function LandlordPropertyDetailPage() {
 
   useEffect(() => {
     if (!loading && !firebaseUser) router.replace("/auth/login");
-    else if (!loading && profile && profile.role !== "LANDLORD") router.replace("/dashboard");
+    else if (!loading && profile && profile.role !== "LANDLORD") router.replace("/forbidden");
   }, [firebaseUser, loading, profile, router]);
 
   const load = useCallback(async () => {
@@ -390,7 +391,7 @@ export default function LandlordPropertyDetailPage() {
                       <div className="listing-image-grid">
                         {listing.images.map((image) => (
                           <div className="listing-image" key={image.id}>
-                            <img src={apiAssetUrl(image.url)} alt={listing.title} />
+                            <SafeImage src={apiAssetUrl(image.url)} alt={listing.title} />
                             {(listing.status === "DRAFT" || listing.status === "REJECTED") && <button aria-label="Xóa ảnh" disabled={busyKey === `delete-image-${image.id}`} onClick={() => void deleteImage(listing.id, image.id)}>×</button>}
                           </div>
                         ))}

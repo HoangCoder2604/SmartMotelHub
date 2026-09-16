@@ -11,7 +11,6 @@ export default function DashboardPage() {
   const { loading, firebaseUser, profile, profileError, refreshProfile, logout } = useAuth();
   const [fullName, setFullName] = useState("");
   const [saving, setSaving] = useState(false);
-  const [rbac, setRbac] = useState<string>("Đang kiểm tra…");
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -21,20 +20,6 @@ export default function DashboardPage() {
   useEffect(() => {
     setFullName(profile?.fullName ?? "");
   }, [profile]);
-
-  useEffect(() => {
-    if (!firebaseUser || !profile) return;
-    const run = async () => {
-      try {
-        const token = await firebaseUser.getIdToken();
-        const data = await apiFetch<{ role: string; access: string }>(`/auth/access/${profile.role.toLowerCase()}`, {}, token);
-        setRbac(data.access);
-      } catch (error) {
-        setRbac(error instanceof Error ? error.message : "RBAC failed");
-      }
-    };
-    void run();
-  }, [firebaseUser, profile]);
 
   const saveProfile = async (event: FormEvent) => {
     event.preventDefault();
@@ -222,7 +207,7 @@ export default function DashboardPage() {
         <article className="info-card">
           <h2>Backend RBAC</h2>
           <p className="muted">Backend kiểm tra Firebase token + PostgreSQL user + role trước khi cho truy cập.</p>
-          <div className="rbac-result"><span>Role endpoint</span><strong>{rbac}</strong></div>
+          <div className="rbac-result"><span>Role enforcement</span><strong>Đang hoạt động</strong></div>
           <p className="tiny muted">Contracts, Invoices, Notifications và Complaints tiếp tục enforce ownership + RBAC ở backend.</p>
         </article>
 

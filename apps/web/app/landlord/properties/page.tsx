@@ -42,7 +42,7 @@ export default function LandlordPropertiesPage() {
 
   useEffect(() => {
     if (!loading && !firebaseUser) router.replace("/auth/login");
-    else if (!loading && profile && profile.role !== "LANDLORD") router.replace("/dashboard");
+    else if (!loading && profile && profile.role !== "LANDLORD") router.replace("/forbidden");
   }, [firebaseUser, loading, profile, router]);
 
   const loadProperties = useCallback(async () => {

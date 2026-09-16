@@ -52,7 +52,7 @@ export default function TenantContractsPage() {
 
   useEffect(() => {
     if (!authLoading && !firebaseUser) router.replace("/auth/login");
-    if (!authLoading && profile && profile.role !== "TENANT") router.replace("/dashboard");
+    if (!authLoading && profile && profile.role !== "TENANT") router.replace("/forbidden");
   }, [authLoading, firebaseUser, profile, router]);
 
   const load = async () => {

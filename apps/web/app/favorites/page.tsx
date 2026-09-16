@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../components/auth-provider";
 import { apiAssetUrl, apiFetch } from "../../lib/api";
 import styles from "../listings/phase5.module.css";
+import { SafeImage } from "../../components/safe-image";
 
 type FavoriteItem = {
   createdAt: string;
@@ -51,7 +52,7 @@ export default function FavoritesPage() {
       return;
     }
     if (profile && profile.role !== "TENANT") {
-      router.replace("/dashboard");
+      router.replace("/forbidden");
       return;
     }
     void load();
@@ -88,7 +89,7 @@ export default function FavoritesPage() {
             {favorites.map(({ listing }) => (
               <article className={styles.card} key={listing.id}>
                 <div className={styles.cover}>
-                  {listing.images[0] ? <img src={apiAssetUrl(listing.images[0].url)} alt={listing.title} /> : <div className={styles.noImage}>Chưa có ảnh</div>}
+                  {listing.images[0] ? <SafeImage src={apiAssetUrl(listing.images[0].url)} alt={listing.title} /> : <div className={styles.noImage}>Chưa có ảnh</div>}
                   <button className={`${styles.favoriteButton} ${styles.favoriteActive}`} type="button" aria-label="Bỏ lưu phòng" onClick={() => void remove(listing.id)}>♥</button>
                 </div>
                 <div className={styles.cardBody}>

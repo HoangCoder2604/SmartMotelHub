@@ -155,8 +155,14 @@ export class ListingsService {
     if (!file) throw new BadRequestException("Chưa chọn ảnh.");
     if (file.size <= 0 || file.size > 5 * 1024 * 1024) throw new BadRequestException("Ảnh phải có dung lượng tối đa 5 MB.");
 
+    const allowedMime = new Set(["image/jpeg", "image/png", "image/webp"]);
+    if (!allowedMime.has(file.mimetype)) throw new BadRequestException("MIME type ảnh không hợp lệ.");
+
     const extension = detectImageExtension(file.buffer);
     if (!extension) throw new BadRequestException("Chỉ hỗ trợ ảnh JPEG, PNG hoặc WebP hợp lệ.");
+
+    const expectedMime = extension === "png" ? "image/png" : extension === "webp" ? "image/webp" : "image/jpeg";
+    if (file.mimetype !== expectedMime) throw new BadRequestException("Nội dung file không khớp với MIME type khai báo.");
 
     const listing = await this.getOwnedListingOrThrow(id, landlordId);
     this.ensureEditableStatus(listing.status);
@@ -292,25 +298,28 @@ export class ListingsService {
 
   private async nearbyProperties(lat: number, lng: number, radiusKm: number) {
     const radiusM = radiusKm * 1000;
-    const rows = await this.prisma.$queryRaw<NearbyPropertyRow[]>(Prisma.sql`
-      SELECT
-        p.id::text AS "propertyId",
-        ST_Distance(
-          p.location,
-          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography
-        )::double precision AS "distanceM"
-      FROM properties p
-      WHERE p.location IS NOT NULL
-        AND ST_DWithin(
-          p.location,
-          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
-          ${radiusM}
-        )
-      ORDER BY "distanceM" ASC
-      LIMIT 2000
-    `);
-
-    return rows;
+    return this.prisma.$transaction(async (tx) => {
+      // Supabase commonly installs PostGIS in `extensions`, while local Docker
+      // installs it in `public`. The transaction-local search_path supports both.
+      await tx.$executeRawUnsafe('SET LOCAL search_path TO public, extensions');
+      return tx.$queryRaw<NearbyPropertyRow[]>(Prisma.sql`
+        SELECT
+          p.id::text AS "propertyId",
+          ST_Distance(
+            p.location,
+            ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography
+          )::double precision AS "distanceM"
+        FROM properties p
+        WHERE p.location IS NOT NULL
+          AND ST_DWithin(
+            p.location,
+            ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
+            ${radiusM}
+          )
+        ORDER BY "distanceM" ASC
+        LIMIT 2000
+      `);
+    });
   }
 
   async listPublic(query: ListPublicListingsQueryDto) {

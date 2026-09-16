@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "../../components/auth-provider";
-import { apiAssetUrl, apiFetch } from "../../lib/api";
+import { apiAssetUrl, apiFetch, apiPublicFetch } from "../../lib/api";
 import styles from "./phase5.module.css";
+import { SafeImage } from "../../components/safe-image";
 
 type Amenity = { id: string; name: string; category: string | null };
 
@@ -94,7 +95,7 @@ export default function PublicListingsPage() {
     setMessage(null);
     try {
       const params = buildParams(page, source, currentPosition);
-      const data = await apiFetch<{ listings: Listing[]; pagination: Pagination }>(`/listings?${params.toString()}`);
+      const data = await apiPublicFetch<{ listings: Listing[]; pagination: Pagination }>(`/listings?${params.toString()}`);
       setListings(data.listings);
       setPagination(data.pagination);
     } catch (error) {
@@ -107,7 +108,7 @@ export default function PublicListingsPage() {
   useEffect(() => {
     void Promise.all([
       load(1, initialFilters, null),
-      apiFetch<{ amenities: Amenity[] }>("/amenities").then((data) => setAmenities(data.amenities)).catch(() => undefined),
+      apiPublicFetch<{ amenities: Amenity[] }>("/amenities").then((data) => setAmenities(data.amenities)).catch(() => undefined),
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -286,7 +287,7 @@ export default function PublicListingsPage() {
               <article className={styles.card} key={listing.id}>
                 <div className={styles.cover}>
                   {listing.images[0]
-                    ? <img src={apiAssetUrl(listing.images[0].url)} alt={listing.title} />
+                    ? <SafeImage src={apiAssetUrl(listing.images[0].url)} alt={listing.title} />
                     : <div className={styles.noImage}>Chưa có ảnh</div>}
                   <button
                     className={`${styles.favoriteButton} ${favorites.has(listing.id) ? styles.favoriteActive : ""}`}

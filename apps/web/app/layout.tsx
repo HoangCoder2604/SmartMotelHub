@@ -8,8 +8,13 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  let apiOrigin: string | null = null;
+  try { apiOrigin = apiUrl ? new URL(apiUrl).origin : null; } catch { apiOrigin = null; }
+
   return (
     <html lang="vi">
+      <head>{apiOrigin && <link rel="preconnect" href={apiOrigin} crossOrigin="anonymous" />}</head>
       <body>
         <Providers>{children}</Providers>
       </body>

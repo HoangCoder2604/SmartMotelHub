@@ -128,17 +128,23 @@ export class NotificationsService {
     return { registeredDevices: count };
   }
 
-  async list(userId: string) {
-    const [items, unreadCount] = await Promise.all([
+  async list(userId: string, page = 1, limit = 20) {
+    const [items, unreadCount, total] = await Promise.all([
       this.prisma.notification.findMany({
         where: { userId },
         orderBy: { createdAt: "desc" },
-        take: 100,
+        skip: (page - 1) * limit,
+        take: limit,
       }),
       this.prisma.notification.count({ where: { userId, readAt: null } }),
+      this.prisma.notification.count({ where: { userId } }),
     ]);
 
-    return { items, unreadCount };
+    return {
+      items,
+      unreadCount,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async markRead(userId: string, id: string) {

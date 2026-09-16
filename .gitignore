@@ -9,3 +9,6 @@ apps/api/src/generated/prisma
 apps/api/uploads
 *.log
 .DS_Store
+# Database backup / dump
+*.dump
+*.sql

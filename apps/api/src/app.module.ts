@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { AdminModule } from "./admin/admin.module.js";
 import { AmenitiesModule } from "./amenities/amenities.module.js";
 import { AnalyticsModule } from "./analytics/analytics.module.js";
@@ -17,6 +18,8 @@ import { PaymentsModule } from "./payments/payments.module.js";
 import { PropertiesModule } from "./properties/properties.module.js";
 import { ReviewsModule } from "./reviews/reviews.module.js";
 import { RoomsModule } from "./rooms/rooms.module.js";
+import { RateLimitGuard } from "./common/guards/rate-limit.guard.js";
+import { LoggingInterceptor } from "./common/interceptors/logging.interceptor.js";
 
 @Module({
   imports: [
@@ -39,5 +42,9 @@ import { RoomsModule } from "./rooms/rooms.module.js";
     PaymentsModule,
   ],
   controllers: [AppController],
+  providers: [
+    { provide: APP_GUARD, useClass: RateLimitGuard },
+    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
+  ],
 })
 export class AppModule {}

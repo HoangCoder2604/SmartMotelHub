@@ -250,30 +250,74 @@ export class PaymentsService {
     };
   }
 
-  async listTenant(tenantId: string) {
-    return this.prisma.payment.findMany({
-      where: { tenantId },
-      orderBy: { createdAt: "desc" },
-      take: 100,
-      include: paymentInclude,
-    });
+  async listTenant(tenantId: string, page = 1, limit = 20) {
+    const where = { tenantId, tenantHiddenAt: null };
+    const [payments, total] = await Promise.all([
+      this.prisma.payment.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: paymentInclude,
+      }),
+      this.prisma.payment.count({ where }),
+    ]);
+
+    return { payments, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
-  async listLandlord(landlordId: string) {
-    return this.prisma.payment.findMany({
-      where: { invoice: { contract: { landlordId } } },
-      orderBy: { createdAt: "desc" },
-      take: 200,
-      include: paymentInclude,
+  async hideTenantHistory(tenantId: string, paymentId: string) {
+    const payment = await this.prisma.payment.findFirst({
+      where: { id: paymentId, tenantId, tenantHiddenAt: null },
+      select: { id: true, status: true },
     });
+    if (!payment) throw new NotFoundException("Không tìm thấy giao dịch thanh toán.");
+    if (payment.status === PaymentStatus.PENDING) {
+      throw new ConflictException("Không thể xóa giao dịch đang chờ xử lý khỏi lịch sử.");
+    }
+
+    await this.prisma.payment.update({
+      where: { id: payment.id },
+      data: { tenantHiddenAt: new Date() },
+    });
+    return { id: payment.id, hidden: true };
   }
 
-  async listAdmin() {
-    return this.prisma.payment.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 300,
-      include: paymentInclude,
-    });
+  async listLandlord(landlordId: string, page = 1, limit = 20) {
+    const where = { invoice: { contract: { landlordId } } };
+    const [payments, total] = await Promise.all([
+      this.prisma.payment.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: paymentInclude,
+      }),
+      this.prisma.payment.count({ where }),
+    ]);
+    return { payments, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+  }
+
+  async listAdmin(page = 1, limit = 20) {
+    const [payments, total, succeeded, pending, failed, revenue] = await Promise.all([
+      this.prisma.payment.findMany({
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: paymentInclude,
+      }),
+      this.prisma.payment.count(),
+      this.prisma.payment.count({ where: { status: PaymentStatus.SUCCEEDED } }),
+      this.prisma.payment.count({ where: { status: PaymentStatus.PENDING } }),
+      this.prisma.payment.count({ where: { status: { in: [PaymentStatus.FAILED, PaymentStatus.CANCELLED, PaymentStatus.EXPIRED] } } }),
+      this.prisma.payment.aggregate({ where: { status: PaymentStatus.SUCCEEDED }, _sum: { amount: true } }),
+    ]);
+
+    return {
+      payments,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      summary: { succeeded, pending, failed, revenue: Number(revenue._sum.amount ?? 0) },
+    };
   }
 
   async getTenantByTxnRef(tenantId: string, txnRef: string) {
