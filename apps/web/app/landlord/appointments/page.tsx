@@ -123,7 +123,7 @@ export default function LandlordAppointmentsPage() {
 
         <header className={styles.hero}>
           <div>
-            <p className={styles.kicker}>LANDLORD · APPOINTMENTS</p>
+            <p className={styles.kicker}>LỊCH HẸN CỦA KHÁCH</p>
             <h1>Lịch xem phòng</h1>
             <p>Xác nhận yêu cầu của TENANT, đánh dấu hoàn tất hoặc không đến sau buổi xem.</p>
           </div>

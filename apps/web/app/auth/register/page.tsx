@@ -58,7 +58,7 @@ export default function RegisterPage() {
     let createdUser: User | null = null;
 
     try {
-      if (!configured) throw new Error("Firebase Web chưa được cấu hình trong .env.");
+      if (!configured) throw new Error("Dịch vụ đăng nhập chưa sẵn sàng. Vui lòng thử lại sau hoặc liên hệ quản trị viên.");
       if (fullName.trim().length < 2) throw new Error("Họ tên phải có ít nhất 2 ký tự.");
 
       const credential = await createUserWithEmailAndPassword(getFirebaseAuth(), email.trim(), password);
@@ -83,7 +83,7 @@ export default function RegisterPage() {
     setLoading(true);
     setError(null);
     try {
-      if (!configured) throw new Error("Firebase Web chưa được cấu hình trong .env.");
+      if (!configured) throw new Error("Dịch vụ đăng nhập chưa sẵn sàng. Vui lòng thử lại sau hoặc liên hệ quản trị viên.");
       const provider = new GoogleAuthProvider();
       const credential = await signInWithPopup(getFirebaseAuth(), provider);
       await finishGoogle(credential.user, credential.user.displayName || "SmartMotel User");

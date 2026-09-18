@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../components/auth-provider";
 import { apiFetch } from "../../lib/api";
 import styles from "./phase11.module.css";
+import { statusLabel } from "../../lib/ui-labels";
 
 type PaymentStatus = "PENDING" | "SUCCEEDED" | "FAILED" | "CANCELLED" | "EXPIRED";
 type Payment = {
@@ -92,10 +93,10 @@ export default function PaymentsPage() {
 
   return <main className={styles.page}><div className={styles.shell}>
     <nav className="topbar"><Link href="/dashboard" className="brand">SmartMotel Hub</Link><div className="topbar-actions"><Link href="/invoices" className="button button-ghost button-small">Hóa đơn</Link><Link href="/notifications" className="button button-ghost button-small">Thông báo</Link></div></nav>
-    <header className={styles.hero}><div><p className={styles.kicker}>PHASE 12 · PAYMENT HISTORY</p><h1>Lịch sử thanh toán</h1><p className={styles.muted}>Theo dõi giao dịch và chủ động ẩn những mục bạn không còn muốn thấy.</p></div><strong>{pagination.total} giao dịch</strong></header>
+    <header className={styles.hero}><div><p className={styles.kicker}>LỊCH SỬ THANH TOÁN</p><h1>Lịch sử thanh toán</h1><p className={styles.muted}>Theo dõi giao dịch và chủ động ẩn những mục bạn không còn muốn thấy.</p></div><strong>{pagination.total} giao dịch</strong></header>
     {message && <div className={styles.alert}>{message}</div>}
     {!payments.length ? <div className={styles.empty}>Chưa có giao dịch thanh toán nào.</div> : <section className={styles.grid}>{payments.map((payment) => <article className={styles.card} key={payment.id}>
-      <div className={styles.cardHeader}><div><p className={styles.kicker}>{payment.invoice.contract.room.property.name}</p><h2>{payment.invoice.contract.room.title} · hóa đơn {month(payment.invoice.billingMonth)}</h2><p className={styles.muted}>{new Date(payment.createdAt).toLocaleString("vi-VN")}</p></div><span className={statusClass(payment.status)}>{payment.status}</span></div>
+      <div className={styles.cardHeader}><div><p className={styles.kicker}>{payment.invoice.contract.room.property.name}</p><h2>{payment.invoice.contract.room.title} · hóa đơn {month(payment.invoice.billingMonth)}</h2><p className={styles.muted}>{new Date(payment.createdAt).toLocaleString("vi-VN")}</p></div><span className={statusClass(payment.status)}>{statusLabel(payment.status)}</span></div>
       <div className={styles.amount}>{money(payment.amount)}</div>
       <div className={styles.details}>
         <div><span>Phương thức</span><strong className={styles.provider}>{payment.provider}</strong></div>

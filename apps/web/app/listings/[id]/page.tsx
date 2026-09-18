@@ -133,7 +133,7 @@ export default function ListingDetailPage() {
       return;
     }
     if (profile.role !== "TENANT") {
-      setMessage("Chức năng lưu phòng dành cho TENANT.");
+      setMessage("Chức năng lưu phòng dành cho khách thuê.");
       return;
     }
     try {
@@ -152,7 +152,7 @@ export default function ListingDetailPage() {
       return;
     }
     if (profile.role !== "TENANT") {
-      setMessage("Chỉ TENANT mới có thể đặt lịch xem phòng.");
+      setMessage("Chỉ tài khoản khách thuê mới có thể đặt lịch xem phòng.");
       return;
     }
 
@@ -187,7 +187,7 @@ export default function ListingDetailPage() {
     <main className={styles.page}>
       <div className={styles.shell}>
         <nav className="topbar">
-          <Link href="/listings" className="brand">← SmartMotel Hub</Link>
+          <Link href="/listings" className="brand">SmartMotel Hub</Link>
           <div className="topbar-actions">
             {profile?.role === "TENANT" && <Link className="button button-ghost button-small" href="/appointments">Lịch xem của tôi</Link>}
             {profile?.role === "TENANT" && <Link className="button button-ghost button-small" href="/favorites">Phòng đã lưu</Link>}
@@ -245,13 +245,13 @@ export default function ListingDetailPage() {
             <section className={styles.section}>
               <h2>Vị trí</h2>
               <iframe className={styles.mapFrame} src={mapUrl} loading="lazy" title={`Bản đồ ${property.name}`} referrerPolicy="no-referrer-when-downgrade" />
-              <p className={styles.location}>Tọa độ: {lat}, {lng}</p>
+              <p className={styles.location}>Vị trí được hiển thị trên bản đồ để bạn dễ ước lượng khoảng cách và đường đi.</p>
             </section>
 
             <section className={styles.section} id="reviews">
               <h2>Đánh giá nhà trọ</h2>
               {!reviews || reviews.summary.count === 0 ? (
-                <p className={styles.location}>Chưa có đánh giá từ TENANT đã hoàn tất lịch xem.</p>
+                <p className={styles.location}>Chưa có đánh giá từ khách thuê đã hoàn tất lịch xem.</p>
               ) : (
                 <>
                   <div className={appointmentStyles.reviewSummary}>
@@ -296,7 +296,7 @@ export default function ListingDetailPage() {
               <p className={styles.sidebarPrice}>{money(listing.room.price)} <span style={{ fontSize: 14, color: "#6f7988" }}>/ tháng</span></p>
               <button className={styles.primary} style={{ width: "100%" }} onClick={() => {
                 if (!firebaseUser) { router.push("/auth/login"); return; }
-                if (profile?.role !== "TENANT") { setMessage("Chỉ TENANT mới có thể đặt lịch xem phòng."); return; }
+                if (profile?.role !== "TENANT") { setMessage("Chỉ tài khoản khách thuê mới có thể đặt lịch xem phòng."); return; }
                 setBookingOpen((value) => !value);
               }} type="button">Đặt lịch xem phòng</button>
               <button className={favorited ? styles.secondary : styles.ghost} style={{ width: "100%", marginTop: 8 }} onClick={() => void toggleFavorite()} type="button">

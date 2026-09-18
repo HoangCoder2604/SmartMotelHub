@@ -191,7 +191,7 @@ export default function NotificationsPage() {
           </div>
         </nav>
 
-        <header className={styles.hero}><div><p className={styles.kicker}>IN-APP + FIREBASE CLOUD MESSAGING</p><h1>Thông báo</h1><p>{unreadCount} chưa đọc · {pagination.total} thông báo.</p></div></header>
+        <header className={styles.hero}><div><p className={styles.kicker}>CẬP NHẬT DÀNH CHO BẠN</p><h1>Thông báo</h1><p>{unreadCount} chưa đọc · {pagination.total} thông báo.</p></div></header>
         {message && <div className={styles.alert}>{message}</div>}
 
         <section className={styles.form}>

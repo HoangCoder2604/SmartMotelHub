@@ -8,6 +8,7 @@ import { RolesGuard } from "../auth/guards/roles.guard.js";
 import { VerifiedEmailGuard } from "../auth/guards/verified-email.guard.js";
 import { ContractsService } from "./contracts.service.js";
 import { CreateContractDto } from "./dto/create-contract.dto.js";
+import { RenewContractDto } from "./dto/renew-contract.dto.js";
 import { TerminateContractDto } from "./dto/terminate-contract.dto.js";
 
 @Controller("landlord/contracts")
@@ -33,6 +34,19 @@ export class LandlordContractsController {
   @Delete(":id")
   async deleteDraft(@CurrentUser() user: User, @Param("id") id: string) {
     return { success: true, data: await this.contractsService.deleteDraft(user.id, id) };
+  }
+
+  @Patch(":id/renew")
+  @UseGuards(VerifiedEmailGuard)
+  async renew(
+    @CurrentUser() user: User,
+    @Param("id") id: string,
+    @Body() dto: RenewContractDto,
+  ) {
+    return {
+      success: true,
+      data: { contract: await this.contractsService.renew(user.id, id, dto) },
+    };
   }
 
   @Patch(":id/terminate")

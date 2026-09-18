@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import styles from "../phase11.module.css";
+import { statusLabel } from "../../../lib/ui-labels";
 
 function ResultContent() {
   const search = useSearchParams();
@@ -22,8 +23,8 @@ function ResultContent() {
       <div className={styles.resultIcon}>{icon}</div>
       <p className={styles.kicker}>VNPAY PAYMENT RESULT</p>
       <h1>{title}</h1>
-      <p className={styles.muted}>{success ? "Hóa đơn đã được cập nhật PAID. Thông báo cũng đã gửi cho TENANT và LANDLORD." : "Bạn có thể kiểm tra trạng thái chính thức trong lịch sử giao dịch. Không thanh toán lại nếu giao dịch ngân hàng đã trừ tiền nhưng trạng thái chưa cập nhật."}</p>
-      <div className={styles.details}><div><span>Trạng thái</span><strong>{status}</strong></div><div><span>Mã giao dịch</span><strong className={styles.code}>{txnRef}</strong></div><div><span>Chữ ký callback</span><strong>{valid ? "Hợp lệ" : "Không hợp lệ"}</strong></div></div>
+      <p className={styles.muted}>{success ? "Hóa đơn đã được ghi nhận thanh toán. Cả khách thuê và chủ nhà đều đã nhận được cập nhật." : "Bạn có thể kiểm tra trạng thái chính thức trong lịch sử giao dịch. Không thanh toán lại nếu giao dịch ngân hàng đã trừ tiền nhưng trạng thái chưa cập nhật."}</p>
+      <div className={styles.details}><div><span>Trạng thái</span><strong>{statusLabel(status)}</strong></div><div><span>Mã giao dịch</span><strong className={styles.code}>{txnRef}</strong></div><div><span>Xác thực giao dịch</span><strong>{valid ? "Đã xác thực" : "Chưa xác thực"}</strong></div></div>
       <div className={styles.actions}><Link href="/payments" className="button button-primary">Xem lịch sử thanh toán</Link><Link href="/invoices" className="button button-secondary">Về hóa đơn</Link></div>
     </section>
   </div></main>;

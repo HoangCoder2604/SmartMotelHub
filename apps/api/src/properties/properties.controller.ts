@@ -48,4 +48,11 @@ export class PropertiesController {
     const property = await this.propertiesService.archive(id, user.id);
     return { success: true, data: { property } };
   }
+
+  @Patch(":id/reactivate")
+  @UseGuards(VerifiedEmailGuard)
+  async reactivate(@CurrentUser() user: User, @Param("id") id: string) {
+    const property = await this.propertiesService.reactivate(id, user.id);
+    return { success: true, data: { property } };
+  }
 }

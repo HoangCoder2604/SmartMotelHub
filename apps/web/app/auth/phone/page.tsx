@@ -39,7 +39,7 @@ export default function PhoneAuthPage() {
     setLoading(true);
     setError(null);
     try {
-      if (!configured) throw new Error("Firebase Web chưa được cấu hình trong .env.");
+      if (!configured) throw new Error("Dịch vụ đăng nhập chưa sẵn sàng. Vui lòng thử lại sau hoặc liên hệ quản trị viên.");
       const result = await signInWithPhoneNumber(getFirebaseAuth(), phone.trim(), getVerifier());
       setConfirmation(result);
     } catch (err) {

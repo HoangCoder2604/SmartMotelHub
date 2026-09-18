@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../components/auth-provider";
 import { apiFetch } from "../../lib/api";
 import styles from "./phase7.module.css";
+import { statusLabel } from "../../lib/ui-labels";
 
 type ContractStatus = "DRAFT" | "ACTIVE" | "EXPIRED" | "TERMINATED";
 
@@ -20,6 +21,11 @@ type Contract = {
   activatedAt: string | null;
   terminatedAt: string | null;
   terminationReason: string | null;
+  renewalIntent: "NONE" | "RENEW" | "NOT_RENEW";
+  renewalRequestedAt: string | null;
+  renewalNote: string | null;
+  previousEndDate: string | null;
+  renewedAt: string | null;
   landlord: { fullName: string; email: string | null; phone: string | null };
   room: { title: string; property: { name: string; address: string; district: string; city: string } };
   invoices: { id: string; status: string }[];
@@ -78,10 +84,30 @@ export default function TenantContractsPage() {
     try {
       const token = await firebaseUser.getIdToken();
       await apiFetch(`/contracts/${contract.id}/accept`, { method: "PATCH" }, token);
-      setMessage("Hợp đồng đã ACTIVE.");
+      setMessage("Hợp đồng đã được kích hoạt.");
       await load();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không thể chấp nhận hợp đồng.");
+    }
+  };
+
+  const updateRenewalIntent = async (contract: Contract, intent: "RENEW" | "NOT_RENEW") => {
+    if (!firebaseUser) return;
+    const action = intent === "RENEW" ? "yêu cầu gia hạn" : "xác nhận không gia hạn";
+    if (!window.confirm(`Bạn muốn ${action} hợp đồng này?`)) return;
+    const note = window.prompt("Ghi chú cho chủ nhà (không bắt buộc):", "");
+    if (note === null) return;
+
+    try {
+      const token = await firebaseUser.getIdToken();
+      await apiFetch(`/contracts/${contract.id}/renewal-intent`, {
+        method: "PATCH",
+        body: JSON.stringify({ intent, ...(note.trim() ? { note: note.trim() } : {}) }),
+      }, token);
+      setMessage(intent === "RENEW" ? "Đã gửi yêu cầu gia hạn cho chủ nhà." : "Đã thông báo cho chủ nhà rằng bạn không gia hạn.");
+      await load();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Không thể cập nhật lựa chọn gia hạn.");
     }
   };
 
@@ -101,7 +127,7 @@ export default function TenantContractsPage() {
         </nav>
 
         <header className={styles.hero}>
-          <div><p className={styles.kicker}>TENANT · CONTRACTS</p><h1>Hợp đồng thuê</h1><p>Xem đề nghị hợp đồng từ chủ nhà và chấp nhận khi thông tin đã chính xác.</p></div>
+          <div><p className={styles.kicker}>HỢP ĐỒNG CỦA BẠN</p><h1>Hợp đồng thuê</h1><p>Xem đề nghị hợp đồng từ chủ nhà và chấp nhận khi thông tin đã chính xác.</p></div>
         </header>
 
         {message && <div className={styles.alert}>{message}</div>}
@@ -113,7 +139,7 @@ export default function TenantContractsPage() {
                 <p className={styles.kicker}>{contract.room.property.name}</p>
                 <h2>{contract.room.title}</h2>
                 <p className={styles.muted}>{contract.room.property.address}, {contract.room.property.district}, {contract.room.property.city}</p>
-                <span className={statusClass(contract.status)}>{contract.status}</span>
+                <span className={statusClass(contract.status)}>{statusLabel(contract.status)}</span>
 
                 <div className={styles.details}>
                   <div><span>Ngày bắt đầu</span><strong>{dateLabel(contract.startDate)}</strong></div>
@@ -125,10 +151,25 @@ export default function TenantContractsPage() {
                 </div>
 
                 {contract.status === "DRAFT" && <div className={styles.alert}>Đây là hợp đồng nháp đang chờ bạn chấp nhận. Hãy kiểm tra kỹ tiền thuê, cọc và thời hạn.</div>}
+                {contract.status === "ACTIVE" && contract.renewalIntent === "RENEW" && (
+                  <div className={styles.alert}><strong>Đã yêu cầu gia hạn.</strong> Chủ nhà đã được thông báo và có thể cập nhật ngày kết thúc mới.{contract.renewalNote ? ` Ghi chú: ${contract.renewalNote}` : ""}</div>
+                )}
+                {contract.status === "ACTIVE" && contract.renewalIntent === "NOT_RENEW" && (
+                  <div className={styles.alert}><strong>Bạn đã chọn không gia hạn.</strong> Hợp đồng sẽ tự chuyển sang trạng thái hết hạn vào ngày kết thúc nếu hai bên không kết thúc sớm.</div>
+                )}
+                {contract.renewedAt && contract.previousEndDate && (
+                  <p className={styles.muted}>Gia hạn gần nhất: từ {dateLabel(contract.previousEndDate)} đến {dateLabel(contract.endDate)}.</p>
+                )}
                 {contract.terminationReason && <div className={styles.alert}><strong>Lý do kết thúc:</strong> {contract.terminationReason}</div>}
 
                 <div className={styles.actions}>
                   {contract.status === "DRAFT" && <button className={styles.primary} onClick={() => void accept(contract)} type="button">Chấp nhận hợp đồng</button>}
+                  {contract.status === "ACTIVE" && contract.endDate && contract.renewalIntent !== "RENEW" && (
+                    <button className={styles.primary} onClick={() => void updateRenewalIntent(contract, "RENEW")} type="button">Yêu cầu gia hạn</button>
+                  )}
+                  {contract.status === "ACTIVE" && contract.endDate && contract.renewalIntent !== "NOT_RENEW" && (
+                    <button className={styles.secondary} onClick={() => void updateRenewalIntent(contract, "NOT_RENEW")} type="button">Không gia hạn</button>
+                  )}
                   <Link className={styles.ghost} href="/invoices">Xem hóa đơn ({contract.invoices.length})</Link>
                 </div>
               </article>

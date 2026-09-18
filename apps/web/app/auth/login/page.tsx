@@ -38,7 +38,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      if (!configured) throw new Error("Firebase Web chưa được cấu hình trong .env.");
+      if (!configured) throw new Error("Dịch vụ đăng nhập chưa sẵn sàng. Vui lòng thử lại sau hoặc liên hệ quản trị viên.");
       const credential = await signInWithEmailAndPassword(getFirebaseAuth(), email.trim(), password);
       const profile = await syncAndHydrateProfile(credential.user);
 
@@ -50,7 +50,7 @@ export default function LoginPage() {
       router.replace("/dashboard");
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
-        setError("Tài khoản Firebase tồn tại nhưng chưa có hồ sơ SmartMotel. Hãy đăng ký trước.");
+        setError("Tài khoản chưa hoàn tất hồ sơ SmartMotel Hub. Vui lòng đăng ký hoặc hoàn tất thiết lập tài khoản trước.");
       } else {
         setError(humanizeAuthError(err));
       }
@@ -63,7 +63,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      if (!configured) throw new Error("Firebase Web chưa được cấu hình trong .env.");
+      if (!configured) throw new Error("Dịch vụ đăng nhập chưa sẵn sàng. Vui lòng thử lại sau hoặc liên hệ quản trị viên.");
       const credential = await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider());
       const token = await credential.user.getIdToken(true);
       await apiFetch("/auth/bootstrap", {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "../../../components/auth-provider";
 import { apiFetch } from "../../../lib/api";
+import { statusLabel } from "../../../lib/ui-labels";
 
 type PropertyRow = {
   id: string;
@@ -94,13 +95,25 @@ export default function LandlordPropertiesPage() {
   };
 
   const archive = async (id: string) => {
-    if (!firebaseUser || !window.confirm("Chuyển nhà trọ này sang INACTIVE?")) return;
+    if (!firebaseUser || !window.confirm("Tạm ngừng hoạt động nhà trọ này?")) return;
     try {
       const token = await firebaseUser.getIdToken();
       await apiFetch(`/properties/${id}`, { method: "DELETE" }, token);
       await loadProperties();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không thể cập nhật nhà trọ.");
+    }
+  };
+
+  const reactivate = async (id: string) => {
+    if (!firebaseUser || !window.confirm("Cho nhà trọ này hoạt động trở lại?")) return;
+    try {
+      const token = await firebaseUser.getIdToken();
+      await apiFetch(`/properties/${id}/reactivate`, { method: "PATCH" }, token);
+      setMessage("Nhà trọ đã hoạt động trở lại.");
+      await loadProperties();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Không thể kích hoạt lại nhà trọ.");
     }
   };
 
@@ -115,11 +128,11 @@ export default function LandlordPropertiesPage() {
 
       <header className="phase3-header">
         <div>
-          <p className="eyebrow">LANDLORD · PHASE 3</p>
+          <p className="eyebrow">KHÔNG GIAN QUẢN LÝ CHỦ NHÀ</p>
           <h1>Quản lý nhà trọ</h1>
           <p className="muted">Tạo bất động sản trước, sau đó thêm phòng, tiện ích, tin đăng và ảnh.</p>
         </div>
-        <span className="role-badge role-landlord">LANDLORD</span>
+        <span className="role-badge role-landlord">Chủ nhà</span>
       </header>
 
       {message && <div className="alert alert-info">{message}</div>}
@@ -157,14 +170,18 @@ export default function LandlordPropertiesPage() {
               <div className="property-card-main">
                 <div className="section-title-row">
                   <div><h3>{property.name}</h3><p>{property.address}, {property.district}, {property.city}</p></div>
-                  <span className={`status-chip status-${property.status.toLowerCase()}`}>{property.status}</span>
+                  <span className={`status-chip status-${property.status.toLowerCase()}`}>{statusLabel(property.status)}</span>
                 </div>
                 <p className="muted">{property.description || "Chưa có mô tả."}</p>
                 <div className="metadata-row"><span>{property._count.rooms} phòng</span><span>{String(property.latitude)}, {String(property.longitude)}</span></div>
               </div>
               <div className="property-card-actions">
                 <Link className="button button-primary button-small" href={`/landlord/properties/${property.id}`}>Quản lý phòng</Link>
-                {property.status === "ACTIVE" && <button className="button button-ghost button-small danger-text" onClick={() => void archive(property.id)}>Ngừng hoạt động</button>}
+                {property.status === "ACTIVE" ? (
+                  <button className="button button-ghost button-small danger-text" onClick={() => void archive(property.id)}>Ngừng hoạt động</button>
+                ) : (
+                  <button className="button button-secondary button-small" onClick={() => void reactivate(property.id)}>Hoạt động trở lại</button>
+                )}
               </div>
             </article>
           ))}

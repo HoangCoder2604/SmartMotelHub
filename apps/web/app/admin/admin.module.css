@@ -304,3 +304,26 @@
   .titleRow { flex-direction: column; }
   .actions { align-items: stretch; flex-direction: column; }
 }
+
+/* Phase 13.1 — responsive admin */
+.tabs {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+}
+.tabs button { flex: 0 0 auto; white-space: nowrap; }
+.userTableWrap { -webkit-overflow-scrolling: touch; }
+
+@media (max-width: 560px) {
+  .header { padding-top: 24px; }
+  .header h1 { font-size: clamp(30px, 10vw, 40px); }
+  .statsGrid { grid-template-columns: 1fr; gap: 9px; }
+  .statsGrid article { padding: 14px; }
+  .toolbar input, .toolbar select { width: 100%; min-height: 46px; font-size: 16px; }
+  .listingMain { padding: 15px; }
+  .cover, .noImage { min-height: 180px; }
+  .actions > * { width: 100%; min-height: 44px; }
+  .rejectBox > div { align-items: stretch; flex-direction: column; }
+  .rejectBox > div > * { width: 100%; }
+  .userTable { min-width: 720px; }
+}

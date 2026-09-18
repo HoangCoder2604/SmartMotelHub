@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../../components/auth-provider";
 import { apiFetch } from "../../../lib/api";
 import styles from "../../contracts/phase7.module.css";
+import { statusLabel } from "../../../lib/ui-labels";
 
 type ContractStatus = "DRAFT" | "ACTIVE" | "EXPIRED" | "TERMINATED";
 type InvoiceStatus = "UNPAID" | "PAID" | "OVERDUE";
@@ -46,6 +47,11 @@ type Contract = {
   deposit: string | number | null;
   status: ContractStatus;
   terminationReason: string | null;
+  renewalIntent: "NONE" | "RENEW" | "NOT_RENEW";
+  renewalRequestedAt: string | null;
+  renewalNote: string | null;
+  previousEndDate: string | null;
+  renewedAt: string | null;
   tenant: { id: string; fullName: string; email: string | null; phone: string | null };
   room: { id: string; title: string; property: { name: string; address: string; district: string; city: string } };
   invoices: Invoice[];
@@ -109,6 +115,9 @@ export default function LandlordContractsPage() {
   const [contractDraft, setContractDraft] = useState<ContractDraft>({ appointmentId: "", startDate: "", endDate: "", monthlyRent: "", deposit: "" });
   const [invoiceContractId, setInvoiceContractId] = useState<string | null>(null);
   const [invoiceDraft, setInvoiceDraft] = useState<InvoiceDraft>({ billingMonth: "", dueDate: "", roomFee: "", electricityFee: "0", waterFee: "0", internetFee: "0", serviceFee: "0", otherFee: "0" });
+  const [renewalContractId, setRenewalContractId] = useState<string | null>(null);
+  const [renewalEndDate, setRenewalEndDate] = useState("");
+  const [renewalNote, setRenewalNote] = useState("");
 
   useEffect(() => {
     if (!authLoading && !firebaseUser) router.replace("/auth/login");
@@ -165,7 +174,7 @@ export default function LandlordContractsPage() {
         }),
       }, token);
       setContractDraft({ appointmentId: "", startDate: "", endDate: "", monthlyRent: "", deposit: "" });
-      setMessage("Đã tạo hợp đồng DRAFT và gửi thông báo cho TENANT.");
+      setMessage("Đã tạo hợp đồng nháp và gửi thông báo cho khách thuê.");
       await load();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không thể tạo hợp đồng.");
@@ -173,7 +182,7 @@ export default function LandlordContractsPage() {
   };
 
   const deleteDraft = async (contract: Contract) => {
-    if (!firebaseUser || !window.confirm("Thu hồi hợp đồng DRAFT này?")) return;
+    if (!firebaseUser || !window.confirm("Thu hồi hợp đồng nháp này?")) return;
     try {
       const token = await firebaseUser.getIdToken();
       await apiFetch(`/landlord/contracts/${contract.id}`, { method: "DELETE" }, token);
@@ -190,10 +199,43 @@ export default function LandlordContractsPage() {
     try {
       const token = await firebaseUser.getIdToken();
       await apiFetch(`/landlord/contracts/${contract.id}/terminate`, { method: "PATCH", body: JSON.stringify({ reason }) }, token);
-      setMessage("Hợp đồng đã TERMINATED. Phòng trở lại AVAILABLE và listing về DRAFT.");
+      setMessage("Hợp đồng đã kết thúc. Phòng được đưa về trạng thái sẵn sàng và tin đăng được chuyển về bản nháp.");
       await load();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không thể kết thúc hợp đồng.");
+    }
+  };
+
+  const openRenewalForm = (contract: Contract) => {
+    if (!contract.endDate) return;
+    const current = new Date(contract.endDate);
+    current.setUTCMonth(current.getUTCMonth() + 6);
+    setRenewalContractId(contract.id);
+    setRenewalEndDate(current.toISOString().slice(0, 10));
+    setRenewalNote("");
+  };
+
+  const renewContract = async (contract: Contract) => {
+    if (!firebaseUser || !renewalEndDate) {
+      setMessage("Hãy chọn ngày kết thúc mới.");
+      return;
+    }
+    try {
+      const token = await firebaseUser.getIdToken();
+      await apiFetch(`/landlord/contracts/${contract.id}/renew`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          newEndDate: renewalEndDate,
+          ...(renewalNote.trim() ? { note: renewalNote.trim() } : {}),
+        }),
+      }, token);
+      setMessage("Đã gia hạn hợp đồng và gửi thông báo cho khách thuê.");
+      setRenewalContractId(null);
+      setRenewalEndDate("");
+      setRenewalNote("");
+      await load();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Không thể gia hạn hợp đồng.");
     }
   };
 
@@ -234,7 +276,7 @@ export default function LandlordContractsPage() {
         }),
       }, token);
       setInvoiceContractId(null);
-      setMessage("Đã tạo hóa đơn và gửi thông báo cho TENANT.");
+      setMessage("Đã tạo hóa đơn và gửi thông báo cho khách thuê.");
       await load();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không thể tạo hóa đơn.");
@@ -270,19 +312,19 @@ export default function LandlordContractsPage() {
         </nav>
 
         <header className={styles.hero}>
-          <div><p className={styles.kicker}>LANDLORD · CONTRACTS & INVOICES</p><h1>Hợp đồng & hóa đơn</h1><p>Tạo hợp đồng từ lịch xem COMPLETED, chờ TENANT chấp nhận, sau đó quản lý hóa đơn hàng tháng.</p></div>
+          <div><p className={styles.kicker}>HỢP ĐỒNG & HÓA ĐƠN</p><h1>Hợp đồng & hóa đơn</h1><p>Tạo và theo dõi hợp đồng thuê, sau đó quản lý hóa đơn định kỳ cho từng khách thuê.</p></div>
         </header>
 
         {message && <div className={styles.alert}>{message}</div>}
 
         <section className={styles.form}>
-          <h2>Tạo hợp đồng DRAFT</h2>
-          {!candidates.length ? <p className={styles.muted}>Chưa có lịch xem COMPLETED đủ điều kiện để tạo hợp đồng mới.</p> : (
+          <h2>Tạo hợp đồng mới</h2>
+          {!candidates.length ? <p className={styles.muted}>Chưa có lịch xem đã hoàn tất đủ điều kiện để tạo hợp đồng mới.</p> : (
             <>
               <div className={styles.formGrid}>
-                <label>Lịch xem COMPLETED
+                <label>Lịch xem đã hoàn tất
                   <select className={styles.select} value={contractDraft.appointmentId} onChange={(event) => setContractDraft((current) => ({ ...current, appointmentId: event.target.value }))}>
-                    <option value="">Chọn TENANT / phòng</option>
+                    <option value="">Chọn khách thuê / phòng</option>
                     {candidates.map((candidate) => <option value={candidate.id} key={candidate.id}>{candidate.tenant.fullName} · {candidate.room.property.name} · {candidate.room.title}</option>)}
                   </select>
                 </label>
@@ -291,8 +333,8 @@ export default function LandlordContractsPage() {
                 <label>Tiền thuê / tháng<input className={styles.input} type="number" min="0" value={contractDraft.monthlyRent} onChange={(event) => setContractDraft((current) => ({ ...current, monthlyRent: event.target.value }))} /></label>
                 <label>Tiền cọc<input className={styles.input} type="number" min="0" value={contractDraft.deposit} onChange={(event) => setContractDraft((current) => ({ ...current, deposit: event.target.value }))} /></label>
               </div>
-              {selectedCandidate && <p className={styles.muted}>TENANT: {selectedCandidate.tenant.fullName} · {selectedCandidate.room.property.address}, {selectedCandidate.room.property.district}, {selectedCandidate.room.property.city}</p>}
-              <div className={styles.actions}><button className={styles.primary} onClick={() => void createContract()} type="button">Tạo hợp đồng DRAFT</button></div>
+              {selectedCandidate && <p className={styles.muted}>Khách thuê: {selectedCandidate.tenant.fullName} · {selectedCandidate.room.property.address}, {selectedCandidate.room.property.district}, {selectedCandidate.room.property.city}</p>}
+              <div className={styles.actions}><button className={styles.primary} onClick={() => void createContract()} type="button">Tạo hợp đồng</button></div>
             </>
           )}
         </section>
@@ -303,8 +345,8 @@ export default function LandlordContractsPage() {
               <article className={styles.card} key={contract.id}>
                 <p className={styles.kicker}>{contract.room.property.name}</p>
                 <h2>{contract.room.title}</h2>
-                <p className={styles.muted}>TENANT: {contract.tenant.fullName} · {contract.tenant.phone || contract.tenant.email || "—"}</p>
-                <span className={contractClass(contract.status)}>{contract.status}</span>
+                <p className={styles.muted}>Khách thuê: {contract.tenant.fullName} · {contract.tenant.phone || contract.tenant.email || "—"}</p>
+                <span className={contractClass(contract.status)}>{statusLabel(contract.status)}</span>
 
                 <div className={styles.details}>
                   <div><span>Bắt đầu</span><strong>{dateLabel(contract.startDate)}</strong></div>
@@ -313,11 +355,41 @@ export default function LandlordContractsPage() {
                   <div><span>Tiền cọc</span><strong>{money(contract.deposit)}</strong></div>
                 </div>
 
+                {contract.status === "ACTIVE" && contract.renewalIntent === "RENEW" && (
+                  <div className={styles.alert}>
+                    <strong>Khách thuê yêu cầu gia hạn.</strong> {contract.renewalNote ? `Ghi chú: ${contract.renewalNote}` : "Hãy chọn ngày kết thúc mới nếu hai bên đồng ý."}
+                  </div>
+                )}
+                {contract.status === "ACTIVE" && contract.renewalIntent === "NOT_RENEW" && (
+                  <div className={styles.alert}>
+                    <strong>Khách thuê chọn không gia hạn.</strong> Hợp đồng sẽ tự chuyển sang trạng thái hết hạn vào ngày {dateLabel(contract.endDate)} nếu không kết thúc sớm.
+                  </div>
+                )}
+                {contract.renewedAt && contract.previousEndDate && (
+                  <p className={styles.muted}>Gia hạn gần nhất: {dateLabel(contract.previousEndDate)} → {dateLabel(contract.endDate)}.</p>
+                )}
+
                 <div className={styles.actions}>
-                  {contract.status === "DRAFT" && <button className={styles.danger} type="button" onClick={() => void deleteDraft(contract)}>Thu hồi DRAFT</button>}
+                  {contract.status === "DRAFT" && <button className={styles.danger} type="button" onClick={() => void deleteDraft(contract)}>Thu hồi bản nháp</button>}
                   {contract.status === "ACTIVE" && <button className={styles.secondary} type="button" onClick={() => openInvoiceForm(contract)}>+ Tạo hóa đơn</button>}
+                  {contract.status === "ACTIVE" && contract.renewalIntent === "RENEW" && <button className={styles.primary} type="button" onClick={() => openRenewalForm(contract)}>Gia hạn hợp đồng</button>}
                   {contract.status === "ACTIVE" && <button className={styles.danger} type="button" onClick={() => void terminate(contract)}>Kết thúc hợp đồng</button>}
                 </div>
+
+                {renewalContractId === contract.id && contract.status === "ACTIVE" && contract.renewalIntent === "RENEW" && (
+                  <div className={styles.form} style={{ marginTop: 16, marginBottom: 0 }}>
+                    <h3>Gia hạn hợp đồng</h3>
+                    <p className={styles.muted}>Ngày hiện tại: {dateLabel(contract.endDate)}. Ngày mới phải lớn hơn ngày hiện tại.</p>
+                    <div className={styles.formGrid}>
+                      <label>Ngày kết thúc mới<input className={styles.input} type="date" value={renewalEndDate} onChange={(event) => setRenewalEndDate(event.target.value)} /></label>
+                      <label>Ghi chú cho khách thuê<input className={styles.input} value={renewalNote} maxLength={1500} onChange={(event) => setRenewalNote(event.target.value)} placeholder="VD: Gia hạn thêm 6 tháng" /></label>
+                    </div>
+                    <div className={styles.actions}>
+                      <button className={styles.primary} type="button" onClick={() => void renewContract(contract)}>Xác nhận gia hạn</button>
+                      <button className={styles.ghost} type="button" onClick={() => setRenewalContractId(null)}>Đóng</button>
+                    </div>
+                  </div>
+                )}
 
                 {invoiceContractId === contract.id && contract.status === "ACTIVE" && (
                   <div className={styles.form} style={{ marginTop: 16, marginBottom: 0 }}>
@@ -340,7 +412,7 @@ export default function LandlordContractsPage() {
                   <div className={styles.invoiceList}>
                     {contract.invoices.map((invoice) => (
                       <div className={styles.invoice} key={invoice.id}>
-                        <div className={styles.invoiceTop}><strong>{monthLabel(invoice.billingMonth)}</strong><span className={invoiceClass(invoice.status)}>{invoice.status}</span></div>
+                        <div className={styles.invoiceTop}><strong>{monthLabel(invoice.billingMonth)}</strong><span className={invoiceClass(invoice.status)}>{statusLabel(invoice.status)}</span></div>
                         <div className={styles.invoiceTotal}>{money(invoice.total)}</div>
                         <p className={styles.muted}>Hạn: {dateLabel(invoice.dueDate)}</p>
                         {(invoice.status === "UNPAID" || invoice.status === "OVERDUE") && <button className={styles.secondary} type="button" onClick={() => void markPaid(invoice)}>Xác nhận đã thanh toán</button>}

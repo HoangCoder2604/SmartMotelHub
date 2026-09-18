@@ -154,7 +154,7 @@ export default function AnalyticsPage() {
   return (
     <main className={styles.page}>
       <nav className={styles.nav}>
-        <Link href="/dashboard" className={styles.brand}>SmartMotel Hub</Link>
+        <Link href="/dashboard" className={`${styles.brand} brand`}>SmartMotel Hub</Link>
         <div className={styles.navActions}>
           <Link href="/dashboard">Dashboard</Link>
           <Link href="/notifications">Thông báo</Link>
@@ -163,9 +163,9 @@ export default function AnalyticsPage() {
 
       <header className={styles.hero}>
         <div>
-          <p className={styles.eyebrow}>PHASE 10 · ANALYTICS & REPORTING</p>
+          <p className={styles.eyebrow}>TỔNG QUAN & THỐNG KÊ</p>
           <h1>{title}</h1>
-          <p>Số liệu được tổng hợp trực tiếp từ PostgreSQL theo quyền của tài khoản đang đăng nhập.</p>
+          <p>Theo dõi những chỉ số quan trọng để hiểu tình hình sử dụng và vận hành của bạn.</p>
         </div>
         <label className={styles.periodSelect}>
           Khoảng thời gian
@@ -193,11 +193,11 @@ export default function AnalyticsPage() {
 
           <section className={styles.twoColumns}>
             <article className={styles.panel}>
-              <div className={styles.panelHeader}><div><p className={styles.eyebrow}>CASHFLOW</p><h2>Invoice PAID theo tháng</h2></div></div>
+              <div className={styles.panelHeader}><div><p className={styles.eyebrow}>DÒNG TIỀN</p><h2>Invoice PAID theo tháng</h2></div></div>
               <TrendChart data={data.monthly} mode="revenue" />
             </article>
             <article className={styles.panel}>
-              <div className={styles.panelHeader}><div><p className={styles.eyebrow}>GROWTH</p><h2>Tài khoản mới theo tháng</h2></div></div>
+              <div className={styles.panelHeader}><div><p className={styles.eyebrow}>TĂNG TRƯỞNG</p><h2>Tài khoản mới theo tháng</h2></div></div>
               <TrendChart data={data.monthly} mode="users" />
             </article>
           </section>
@@ -225,7 +225,7 @@ export default function AnalyticsPage() {
           </section>
 
           <article className={styles.panel}>
-            <div className={styles.panelHeader}><div><p className={styles.eyebrow}>REVENUE</p><h2>Tiền thuê đã xác nhận theo tháng</h2></div></div>
+            <div className={styles.panelHeader}><div><p className={styles.eyebrow}>DOANH THU</p><h2>Tiền thuê đã xác nhận theo tháng</h2></div></div>
             <TrendChart data={data.monthly} mode="revenue" />
           </article>
 
@@ -253,7 +253,7 @@ export default function AnalyticsPage() {
 
           <section className={styles.twoColumns}>
             <article className={styles.panel}>
-              <div className={styles.panelHeader}><div><p className={styles.eyebrow}>SPENDING</p><h2>Chi tiêu đã thanh toán theo tháng</h2></div></div>
+              <div className={styles.panelHeader}><div><p className={styles.eyebrow}>CHI TIÊU</p><h2>Chi tiêu đã thanh toán theo tháng</h2></div></div>
               <TrendChart data={data.monthly} mode="spend" />
             </article>
             <div className={styles.stack}>

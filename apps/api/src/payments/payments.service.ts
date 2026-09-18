@@ -399,6 +399,35 @@ export class PaymentsService {
             paymentNote: `VNPAY ${query.vnp_TransactionNo || payment.txnRef}`,
           },
         });
+
+        // Phase 13: tiền VNPAY đi qua merchant của SmartMotel Hub nên sau khi
+        // gateway xác nhận thành công, ghi nhận đúng số tiền vào ví nội bộ của
+        // landlord sở hữu hợp đồng. Wallet transaction có paymentId UNIQUE để
+        // callback return/IPN lặp lại không thể cộng tiền hai lần.
+        const landlordId = payment.invoice.contract.landlordId;
+        const wallet = await tx.landlordWallet.upsert({
+          where: { landlordId },
+          create: {
+            landlordId,
+            balance: payment.amount,
+            totalReceived: payment.amount,
+          },
+          update: {
+            balance: { increment: payment.amount },
+            totalReceived: { increment: payment.amount },
+          },
+        });
+
+        await tx.landlordWalletTransaction.create({
+          data: {
+            walletId: wallet.id,
+            type: "PAYMENT_CREDIT",
+            amount: payment.amount,
+            paymentId: payment.id,
+            description: `VNPAY payment ${payment.txnRef}`,
+          },
+        });
+
         return true;
       });
 

@@ -8,6 +8,7 @@ export type CreateNotificationInput = {
   title: string;
   message: string;
   href?: string | null;
+  dedupeKey?: string | null;
 };
 
 const INVALID_FCM_CODES = new Set([
@@ -32,6 +33,7 @@ export class NotificationsService {
         title: input.title,
         message: input.message,
         href: input.href ?? null,
+        dedupeKey: input.dedupeKey ?? null,
       },
     });
 
@@ -43,6 +45,24 @@ export class NotificationsService {
     });
 
     return notification;
+  }
+
+  async notifyOnce(input: CreateNotificationInput & { dedupeKey: string }) {
+    const existing = await this.prisma.notification.findUnique({
+      where: { dedupeKey: input.dedupeKey },
+    });
+    if (existing) return existing;
+
+    try {
+      return await this.notify(input);
+    } catch (error) {
+      // Chống race-condition khi nhiều instance cùng chạy job expiry.
+      const raced = await this.prisma.notification.findUnique({
+        where: { dedupeKey: input.dedupeKey },
+      });
+      if (raced) return raced;
+      throw error;
+    }
   }
 
   private async sendPushForNotification(notification: {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "../../components/auth-provider";
 import { apiFetch } from "../../lib/api";
+import { statusLabel, roleLabel } from "../../lib/ui-labels";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -67,11 +68,11 @@ export default function DashboardPage() {
 
       <header className="dashboard-header">
         <div>
-          <p className="eyebrow">PHASE 11 · VNPAY PAYMENTS</p>
+          <p className="eyebrow">TỔNG QUAN TÀI KHOẢN</p>
           <h1>Xin chào, {profile.fullName}</h1>
-          <p className="muted">Theo dõi toàn bộ hành trình thuê phòng, thanh toán VNPAY, thông báo đẩy và số liệu phân tích theo đúng quyền tài khoản.</p>
+          <p className="muted">Mọi công việc quan trọng của bạn được sắp xếp gọn gàng tại đây.</p>
         </div>
-        <span className={`role-badge role-${profile.role.toLowerCase()}`}>{profile.role}</span>
+        <span className={`role-badge role-${profile.role.toLowerCase()}`}>{roleLabel(profile.role)}</span>
       </header>
 
       {profile.email && !profile.emailVerified && (
@@ -85,76 +86,76 @@ export default function DashboardPage() {
         {profile.role === "LANDLORD" && (
           <Link href="/landlord/properties" className="dashboard-action-card">
             <span className="action-icon">⌂</span>
-            <div><p className="eyebrow">LANDLORD WORKSPACE</p><h2>Quản lý nhà trọ</h2><p>Tạo property, phòng, tiện ích, tin đăng và tải ảnh.</p></div>
+            <div><p className="eyebrow">KHÔNG GIAN CHỦ NHÀ</p><h2>Quản lý nhà trọ</h2><p>Quản lý nhà trọ, phòng, tiện ích, hình ảnh và tin đăng.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
         {profile.role === "LANDLORD" && (
           <Link href="/landlord/appointments" className="dashboard-action-card">
             <span className="action-icon">◷</span>
-            <div><p className="eyebrow">LANDLORD APPOINTMENTS</p><h2>Lịch xem của khách</h2><p>Xác nhận, từ chối và hoàn tất lịch xem phòng của TENANT.</p></div>
+            <div><p className="eyebrow">LỊCH HẸN</p><h2>Lịch xem của khách</h2><p>Xác nhận, sắp xếp và hoàn tất lịch xem phòng của khách thuê.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
         {profile.role === "LANDLORD" && (
           <Link href="/landlord/contracts" className="dashboard-action-card">
             <span className="action-icon">▤</span>
-            <div><p className="eyebrow">LANDLORD RENTAL</p><h2>Hợp đồng & hóa đơn</h2><p>Tạo hợp đồng từ lịch COMPLETED, quản lý tiền thuê và xác nhận thanh toán.</p></div>
+            <div><p className="eyebrow">QUẢN LÝ CHO THUÊ</p><h2>Hợp đồng & hóa đơn</h2><p>Quản lý hợp đồng, tiền thuê và hóa đơn theo từng khách thuê.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
         {profile.role === "LANDLORD" && (
           <Link href="/landlord/payments" className="dashboard-action-card">
             <span className="action-icon">₫</span>
-            <div><p className="eyebrow">LANDLORD PAYMENTS</p><h2>Thanh toán đã nhận</h2><p>Đối soát VNPAY và các khoản thanh toán thủ công thuộc nhà trọ của bạn.</p></div>
+            <div><p className="eyebrow">TÀI CHÍNH</p><h2>Ví & rút tiền</h2><p>Theo dõi số dư, tài khoản ngân hàng và các yêu cầu rút tiền.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
         {profile.role === "TENANT" && (
           <Link href="/listings" className="dashboard-action-card">
             <span className="action-icon">⌕</span>
-            <div><p className="eyebrow">TENANT DISCOVERY</p><h2>Khám phá phòng</h2><p>Tìm theo giá, diện tích, tiện ích, khoảng cách và xem chi tiết phòng.</p></div>
+            <div><p className="eyebrow">KHÁM PHÁ</p><h2>Khám phá phòng</h2><p>Tìm theo giá, diện tích, tiện ích và khu vực phù hợp với bạn.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
         {profile.role === "TENANT" && (
           <Link href="/favorites" className="dashboard-action-card">
             <span className="action-icon">♥</span>
-            <div><p className="eyebrow">TENANT FAVORITES</p><h2>Phòng đã lưu</h2><p>Xem lại các phòng bạn quan tâm trước khi đặt lịch xem.</p></div>
+            <div><p className="eyebrow">ĐÃ LƯU</p><h2>Phòng đã lưu</h2><p>Xem lại các phòng bạn quan tâm trước khi đặt lịch xem.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
         {profile.role === "TENANT" && (
           <Link href="/appointments" className="dashboard-action-card">
             <span className="action-icon">◷</span>
-            <div><p className="eyebrow">TENANT APPOINTMENTS</p><h2>Lịch xem phòng</h2><p>Theo dõi xác nhận của chủ nhà, hủy lịch và đánh giá sau khi hoàn tất.</p></div>
+            <div><p className="eyebrow">LỊCH HẸN</p><h2>Lịch xem phòng</h2><p>Theo dõi lịch xem, thay đổi kế hoạch và đánh giá sau khi hoàn tất.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
         {profile.role === "TENANT" && (
           <Link href="/contracts" className="dashboard-action-card">
             <span className="action-icon">▤</span>
-            <div><p className="eyebrow">TENANT CONTRACTS</p><h2>Hợp đồng thuê</h2><p>Xem hợp đồng DRAFT từ chủ nhà và chấp nhận để kích hoạt thuê phòng.</p></div>
+            <div><p className="eyebrow">HỢP ĐỒNG</p><h2>Hợp đồng thuê</h2><p>Kiểm tra thông tin hợp đồng, thời hạn thuê và yêu cầu gia hạn khi cần.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
         {profile.role === "TENANT" && (
           <Link href="/invoices" className="dashboard-action-card">
             <span className="action-icon">₫</span>
-            <div><p className="eyebrow">TENANT INVOICES</p><h2>Hóa đơn</h2><p>Theo dõi tiền phòng, điện nước, hạn thanh toán và trạng thái PAID.</p></div>
+            <div><p className="eyebrow">HÓA ĐƠN</p><h2>Hóa đơn</h2><p>Theo dõi tiền phòng, điện nước, hạn thanh toán và tình trạng hóa đơn.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
         {profile.role === "TENANT" && (
           <Link href="/payments" className="dashboard-action-card">
             <span className="action-icon">◎</span>
-            <div><p className="eyebrow">VNPAY & PAYMENT HISTORY</p><h2>Thanh toán trực tuyến</h2><p>Thanh toán hóa đơn qua VNPAY Sandbox và xem lịch sử giao dịch chi tiết.</p></div>
+            <div><p className="eyebrow">THANH TOÁN</p><h2>Thanh toán trực tuyến</h2><p>Thanh toán hóa đơn trực tuyến và xem lại lịch sử giao dịch của bạn.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
         <Link href="/analytics" className="dashboard-action-card">
           <span className="action-icon">▥</span>
-          <div><p className="eyebrow">ANALYTICS & REPORTING</p><h2>Phân tích & báo cáo</h2><p>Xem chỉ số vận hành, hóa đơn, hợp đồng và xu hướng theo vai trò của bạn.</p></div>
+          <div><p className="eyebrow">THỐNG KÊ</p><h2>Phân tích & báo cáo</h2><p>Xem chỉ số vận hành, hóa đơn, hợp đồng và xu hướng theo vai trò của bạn.</p></div>
           <span className="action-arrow">→</span>
         </Link>
         <Link href="/notifications" className="dashboard-action-card">
@@ -165,28 +166,28 @@ export default function DashboardPage() {
         {profile.role !== "ADMIN" && (
           <Link href="/complaints" className="dashboard-action-card">
             <span className="action-icon">⚑</span>
-            <div><p className="eyebrow">TRUST & SAFETY</p><h2>Báo cáo & khiếu nại</h2><p>Báo cáo tin đáng ngờ và theo dõi trạng thái xử lý từ Admin.</p></div>
+            <div><p className="eyebrow">HỖ TRỢ & AN TOÀN</p><h2>Báo cáo & khiếu nại</h2><p>Báo cáo tin đáng ngờ và theo dõi trạng thái xử lý từ Admin.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
         {profile.role === "ADMIN" && (
           <Link href="/admin/complaints" className="dashboard-action-card">
             <span className="action-icon">⚑</span>
-            <div><p className="eyebrow">ADMIN TRUST & SAFETY</p><h2>Xử lý báo cáo</h2><p>Nhận, điều tra, giải quyết hoặc bác bỏ báo cáo người dùng.</p></div>
+            <div><p className="eyebrow">ADMIN HỖ TRỢ & AN TOÀN</p><h2>Xử lý báo cáo</h2><p>Nhận, điều tra, giải quyết hoặc bác bỏ báo cáo người dùng.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
         {profile.role === "ADMIN" && (
           <Link href="/admin/payments" className="dashboard-action-card">
             <span className="action-icon">₫</span>
-            <div><p className="eyebrow">ADMIN PAYMENT AUDIT</p><h2>Đối soát thanh toán</h2><p>Xem lịch sử VNPAY, giao dịch thủ công, mã gateway và trạng thái toàn hệ thống.</p></div>
+            <div><p className="eyebrow">TÀI CHÍNH</p><h2>Thanh toán & rút tiền</h2><p>Theo dõi giao dịch và xử lý yêu cầu rút tiền của chủ nhà.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
         {profile.role === "ADMIN" && (
           <Link href="/admin" className="dashboard-action-card">
             <span className="action-icon">⚙</span>
-            <div><p className="eyebrow">ADMIN CONSOLE</p><h2>Duyệt tin & quản lý user</h2><p>Xử lý PENDING → APPROVED / REJECTED và khóa/mở tài khoản.</p></div>
+            <div><p className="eyebrow">QUẢN TRỊ HỆ THỐNG</p><h2>Duyệt tin & quản lý tài khoản</h2><p>Kiểm duyệt tin đăng và quản lý trạng thái tài khoản người dùng.</p></div>
             <span className="action-arrow">→</span>
           </Link>
         )}
@@ -198,17 +199,17 @@ export default function DashboardPage() {
           <dl className="details-list">
             <div><dt>Email</dt><dd>{profile.email ?? "—"}</dd></div>
             <div><dt>Điện thoại</dt><dd>{profile.phone ?? "—"}</dd></div>
-            <div><dt>Trạng thái</dt><dd>{profile.status}</dd></div>
-            <div><dt>Email verified</dt><dd>{profile.emailVerified ? "Có" : "Chưa"}</dd></div>
-            <div><dt>Phone verified</dt><dd>{profile.phoneVerified ? "Có" : "Chưa"}</dd></div>
+            <div><dt>Trạng thái</dt><dd>{statusLabel(profile.status)}</dd></div>
+            <div><dt>Email đã xác minh</dt><dd>{profile.emailVerified ? "Có" : "Chưa"}</dd></div>
+            <div><dt>Số điện thoại đã xác minh</dt><dd>{profile.phoneVerified ? "Có" : "Chưa"}</dd></div>
           </dl>
         </article>
 
         <article className="info-card">
-          <h2>Backend RBAC</h2>
-          <p className="muted">Backend kiểm tra Firebase token + PostgreSQL user + role trước khi cho truy cập.</p>
-          <div className="rbac-result"><span>Role enforcement</span><strong>Đang hoạt động</strong></div>
-          <p className="tiny muted">Contracts, Invoices, Notifications và Complaints tiếp tục enforce ownership + RBAC ở backend.</p>
+          <h2>Bảo mật & trạng thái tài khoản</h2>
+          <p className="muted">Tài khoản của bạn được bảo vệ và chỉ hiển thị những chức năng phù hợp với quyền sử dụng.</p>
+          <div className="rbac-result"><span>Trạng thái bảo mật</span><strong className="good">Đang bảo vệ</strong></div>
+          <p className="tiny muted">Các thao tác quan trọng luôn được kiểm tra quyền truy cập trước khi thực hiện.</p>
         </article>
 
         <article className="info-card info-card-wide">

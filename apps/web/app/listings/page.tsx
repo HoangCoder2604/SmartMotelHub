@@ -106,8 +106,11 @@ export default function PublicListingsPage() {
   };
 
   useEffect(() => {
+    const query = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("search") ?? "" : "";
+    const seededFilters = query ? { ...initialFilters, search: query } : initialFilters;
+    setFilters(seededFilters);
     void Promise.all([
-      load(1, initialFilters, null),
+      load(1, seededFilters, null),
       apiPublicFetch<{ amenities: Amenity[] }>("/amenities").then((data) => setAmenities(data.amenities)).catch(() => undefined),
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -175,7 +178,7 @@ export default function PublicListingsPage() {
       return;
     }
     if (profile.role !== "TENANT") {
-      setMessage("Chức năng lưu phòng dành cho tài khoản TENANT.");
+      setMessage("Chức năng lưu phòng dành cho khách thuê.");
       return;
     }
     try {
@@ -205,9 +208,9 @@ export default function PublicListingsPage() {
 
         <header className={styles.hero}>
           <div>
-            <p className={styles.kicker}>PHASE 5 · TENANT SEARCH & DISCOVERY</p>
+            <p className={styles.kicker}>KHÁM PHÁ KHÔNG GIAN SỐNG</p>
             <h1>Tìm phòng phù hợp nhanh hơn</h1>
-            <p>Lọc theo giá, diện tích, tiện ích và khoảng cách bằng PostGIS.</p>
+            <p>Lọc theo giá, diện tích, tiện ích và khoảng cách thực tế để tìm lựa chọn phù hợp.</p>
           </div>
         </header>
 

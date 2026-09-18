@@ -18,6 +18,7 @@ import { PaymentsModule } from "./payments/payments.module.js";
 import { PropertiesModule } from "./properties/properties.module.js";
 import { ReviewsModule } from "./reviews/reviews.module.js";
 import { RoomsModule } from "./rooms/rooms.module.js";
+import { WalletsModule } from "./wallets/wallets.module.js";
 import { RateLimitGuard } from "./common/guards/rate-limit.guard.js";
 import { LoggingInterceptor } from "./common/interceptors/logging.interceptor.js";
 
@@ -40,6 +41,7 @@ import { LoggingInterceptor } from "./common/interceptors/logging.interceptor.js
     AdminModule,
     AnalyticsModule,
     PaymentsModule,
+    WalletsModule,
   ],
   controllers: [AppController],
   providers: [

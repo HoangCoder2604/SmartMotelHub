@@ -25,7 +25,7 @@
 }
 
 .hero p { margin: 0; color: #697386; }
-.kicker { margin: 0; font-size: 12px; font-weight: 800; letter-spacing: .12em; color: #4263eb; }
+.kicker { margin: 0; font-size: 12px; font-weight: 800; letter-spacing: .12em; color: #0f766e; }
 
 .toolbar {
   display: flex;
@@ -80,7 +80,7 @@
 }
 
 .statusPending { background: #fff4d6; color: #8a5a00; }
-.statusConfirmed { background: #e8f1ff; color: #1c4fa3; }
+.statusConfirmed { background: #ecfeff; color: #0f766e; }
 .statusCompleted { background: #e8f7ee; color: #1b6a3a; }
 .statusRejected,
 .statusCancelled,
@@ -129,7 +129,7 @@
   justify-content: center;
 }
 
-.primary { background: #3157d5; color: #fff; }
+.primary { background: #0d9488; color: #fff; }
 .secondary { background: #e9f5ee; color: #24633d; }
 .danger { background: #fff0f1; color: #a2384a; }
 .ghost { background: #f1f3f6; color: #3d4655; }
@@ -180,7 +180,7 @@
 .score {
   font-size: 38px;
   font-weight: 850;
-  color: #254fc2;
+  color: #0f766e;
 }
 
 .score span { font-size: 14px; color: #7b8492; font-weight: 600; }
@@ -203,4 +203,15 @@
 @media (max-width: 480px) {
   .detailGrid,
   .reviewGrid { grid-template-columns: 1fr; }
+}
+
+/* Phase 13.1 — responsive appointments */
+@media (max-width: 620px) {
+  .toolbar { align-items: stretch; flex-direction: column; }
+  .toolbar select, .input, .select { width: 100%; min-height: 46px; font-size: 16px; }
+  .card { padding: 15px; }
+  .cardTop, .reviewItemTop { flex-direction: column; align-items: flex-start; }
+  .actions { display: grid; grid-template-columns: 1fr; }
+  .actions > * { width: 100%; min-height: 44px; }
+  .ratingBars { grid-template-columns: 1fr; }
 }

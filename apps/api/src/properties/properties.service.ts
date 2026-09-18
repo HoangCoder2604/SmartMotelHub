@@ -72,10 +72,22 @@ export class PropertiesService {
   }
 
   async archive(id: string, landlordId: string) {
-    await this.getMineOrThrow(id, landlordId);
+    const property = await this.getMineOrThrow(id, landlordId);
+    if (property.status === PropertyStatus.INACTIVE) return property;
+
     return this.prisma.property.update({
       where: { id },
       data: { status: PropertyStatus.INACTIVE },
+    });
+  }
+
+  async reactivate(id: string, landlordId: string) {
+    const property = await this.getMineOrThrow(id, landlordId);
+    if (property.status === PropertyStatus.ACTIVE) return property;
+
+    return this.prisma.property.update({
+      where: { id },
+      data: { status: PropertyStatus.ACTIVE },
     });
   }
 }

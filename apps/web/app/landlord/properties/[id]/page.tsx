@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { useAuth } from "../../../../components/auth-provider";
 import { apiAssetUrl, apiFetch, apiUpload } from "../../../../lib/api";
 import { SafeImage } from "../../../../components/safe-image";
+import { statusLabel } from "../../../../lib/ui-labels";
 
 type Amenity = { id: string; code: string; name: string; category: string | null };
 type ListingImage = { id: string; url: string; sortOrder: number };
@@ -226,12 +227,12 @@ export default function LandlordPropertyDetailPage() {
   };
 
   const submitListing = async (listingId: string) => {
-    if (!firebaseUser || !window.confirm("Gửi tin này sang trạng thái PENDING để chờ Admin duyệt?")) return;
+    if (!firebaseUser || !window.confirm("Gửi tin đăng này để quản trị viên kiểm duyệt?")) return;
     setBusyKey(`submit-${listingId}`);
     try {
       const token = await firebaseUser.getIdToken();
       await apiFetch(`/landlord/listings/${listingId}/submit`, { method: "POST" }, token);
-      setMessage("Tin đăng đã chuyển sang PENDING.");
+      setMessage("Tin đăng đã được gửi để kiểm duyệt.");
       await load();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Không thể gửi duyệt.");
@@ -254,7 +255,7 @@ export default function LandlordPropertyDetailPage() {
     }
   };
 
-  if (loading || pageLoading) return <main className="center-screen"><p>Đang tải dữ liệu Phase 3…</p></main>;
+  if (loading || pageLoading) return <main className="center-screen"><p>Đang tải thông tin nhà trọ…</p></main>;
   if (!property) return <main className="center-screen"><section className="info-card"><h1>Không tải được nhà trọ</h1><p>{message}</p><Link href="/landlord/properties">Quay lại</Link></section></main>;
 
   return (
@@ -266,11 +267,11 @@ export default function LandlordPropertyDetailPage() {
 
       <header className="phase3-header">
         <div>
-          <p className="eyebrow">PROPERTY · ROOM · LISTING</p>
+          <p className="eyebrow">CHI TIẾT NHÀ TRỌ</p>
           <h1>{property.name}</h1>
           <p className="muted">{property.address}, {property.district}, {property.city}</p>
         </div>
-        <span className={`status-chip status-${property.status.toLowerCase()}`}>{property.status}</span>
+        <span className={`status-chip status-${property.status.toLowerCase()}`}>{statusLabel(property.status)}</span>
       </header>
 
       {message && <div className="alert alert-info">{message}</div>}
@@ -357,7 +358,7 @@ export default function LandlordPropertyDetailPage() {
                     </>
                   ) : (
                     <>
-                      <div className="section-title-row"><div><p className="eyebrow">TIN ĐĂNG</p><h4>{listing.title}</h4></div><span className={`status-chip status-${listing.status.toLowerCase()}`}>{listing.status}</span></div>
+                      <div className="section-title-row"><div><p className="eyebrow">TIN ĐĂNG</p><h4>{listing.title}</h4></div><span className={`status-chip status-${listing.status.toLowerCase()}`}>{statusLabel(listing.status)}</span></div>
                       {listing.status === "REJECTED" && listing.rejectionReason && (
                         <div className="alert alert-warning">
                           <strong>Lý do Admin từ chối:</strong> {listing.rejectionReason}
@@ -405,8 +406,8 @@ export default function LandlordPropertyDetailPage() {
                           <button className="button button-primary button-small" disabled={busyKey === `submit-${listing.id}`} onClick={() => void submitListing(listing.id)}>Gửi Admin duyệt</button>
                         </div>
                       )}
-                      {listing.status === "PENDING" && <p className="tiny muted">Tin đang chờ Admin duyệt.</p>}
-                      {listing.status === "APPROVED" && <p className="tiny muted">Tin đã được Admin duyệt và đang hiển thị công khai nếu phòng AVAILABLE.</p>}
+                      {listing.status === "PENDING" && <p className="tiny muted">Tin đang chờ quản trị viên duyệt.</p>}
+                      {listing.status === "APPROVED" && <p className="tiny muted">Tin đã được duyệt và sẽ hiển thị công khai khi phòng sẵn sàng cho thuê.</p>}
                     </>
                   )}
                 </div>

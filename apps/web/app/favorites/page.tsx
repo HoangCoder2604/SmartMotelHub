@@ -74,11 +74,11 @@ export default function FavoritesPage() {
     <main className={styles.page}>
       <div className={styles.shell}>
         <nav className="topbar">
-          <Link href="/listings" className="brand">← SmartMotel Hub</Link>
+          <Link href="/listings" className="brand">SmartMotel Hub</Link>
           <Link className="button button-ghost button-small" href="/dashboard">Dashboard</Link>
         </nav>
         <header className={styles.hero}>
-          <div><p className={styles.kicker}>TENANT · FAVORITES</p><h1>Phòng đã lưu</h1><p>Lưu các phòng quan tâm để so sánh và xem lại sau.</p></div>
+          <div><p className={styles.kicker}>BỘ SƯU TẬP CỦA BẠN</p><h1>Phòng đã lưu</h1><p>Lưu các phòng quan tâm để so sánh và xem lại sau.</p></div>
         </header>
 
         {message && <div className={styles.alert}>{message}</div>}

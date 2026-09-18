@@ -160,7 +160,7 @@ export default function TenantAppointmentsPage() {
 
         <header className={styles.hero}>
           <div>
-            <p className={styles.kicker}>PHASE 6 · APPOINTMENTS & REVIEWS</p>
+            <p className={styles.kicker}>LỊCH HẸN XEM PHÒNG</p>
             <h1>Lịch xem phòng của tôi</h1>
             <p>Theo dõi yêu cầu, xác nhận của chủ nhà và đánh giá sau khi lịch xem hoàn tất.</p>
           </div>

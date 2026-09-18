@@ -103,7 +103,7 @@ export default function AdminComplaintsPage() {
         </nav>
 
         <header className={styles.header}>
-          <div><p className="eyebrow">PHASE 8 · ADMIN TRUST & SAFETY</p><h1>Quản lý báo cáo</h1><p className="muted">Tiếp nhận, nhận xử lý, giải quyết hoặc bác bỏ báo cáo của người dùng.</p></div>
+          <div><p className="eyebrow">TRUNG TÂM HỖ TRỢ & AN TOÀN</p><h1>Quản lý báo cáo</h1><p className="muted">Tiếp nhận, nhận xử lý, giải quyết hoặc bác bỏ báo cáo của người dùng.</p></div>
           <span className="role-badge role-admin">ADMIN</span>
         </header>
 

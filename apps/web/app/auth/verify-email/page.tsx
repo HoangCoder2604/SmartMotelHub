@@ -46,7 +46,7 @@ export default function VerifyEmailPage() {
       await reload(firebaseUser);
 
       if (!firebaseUser.emailVerified) {
-        setMessage("Email vẫn chưa được xác minh. Hãy mở thư Firebase gửi và bấm liên kết xác minh.");
+        setMessage("Email vẫn chưa được xác minh. Hãy mở thư xác minh trong hộp thư và bấm vào liên kết được gửi.");
         return;
       }
 

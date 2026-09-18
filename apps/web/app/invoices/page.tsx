@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../components/auth-provider";
 import { apiFetch } from "../../lib/api";
 import styles from "../contracts/phase7.module.css";
+import { statusLabel } from "../../lib/ui-labels";
 
 type InvoiceStatus = "UNPAID" | "PAID" | "OVERDUE";
 
@@ -112,7 +113,7 @@ export default function TenantInvoicesPage() {
         </nav>
 
         <header className={styles.hero}>
-          <div><p className={styles.kicker}>TENANT · INVOICES</p><h1>Hóa đơn thuê phòng</h1><p>Theo dõi tiền phòng, điện, nước, Internet, phí dịch vụ và trạng thái thanh toán.</p></div>
+          <div><p className={styles.kicker}>HÓA ĐƠN CỦA BẠN</p><h1>Hóa đơn thuê phòng</h1><p>Theo dõi tiền phòng, điện, nước, Internet, phí dịch vụ và trạng thái thanh toán.</p></div>
         </header>
 
         {message && <div className={styles.alert}>{message}</div>}
@@ -124,7 +125,7 @@ export default function TenantInvoicesPage() {
                 <p className={styles.kicker}>{invoice.contract.room.property.name}</p>
                 <h2>{monthLabel(invoice.billingMonth)}</h2>
                 <p className={styles.muted}>{invoice.contract.room.title} · {invoice.contract.room.property.address}</p>
-                <span className={statusClass(invoice.status)}>{invoice.status}</span>
+                <span className={statusClass(invoice.status)}>{statusLabel(invoice.status)}</span>
 
                 <div className={styles.details}>
                   <div><span>Tiền phòng</span><strong>{money(invoice.roomFee)}</strong></div>

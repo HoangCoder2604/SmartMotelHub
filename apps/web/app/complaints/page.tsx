@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "../../components/auth-provider";
 import { apiFetch } from "../../lib/api";
 import styles from "./phase8.module.css";
+import { roleLabel } from "../../lib/ui-labels";
 
 type ComplaintStatus = "OPEN" | "INVESTIGATING" | "RESOLVED" | "REJECTED";
 type Complaint = {
@@ -101,14 +102,14 @@ export default function ComplaintsPage() {
     }
   };
 
-  if (loading || (firebaseUser && pageLoading)) return <main className="center-screen"><p>Đang tải Trung tâm báo cáo…</p></main>;
+  if (loading || (firebaseUser && pageLoading)) return <main className="center-screen"><p>Đang tải Trung tâm hỗ trợ…</p></main>;
   if (!profile) return null;
 
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
         <nav className="topbar">
-          <Link href="/dashboard" className="brand">← SmartMotel Hub</Link>
+          <Link href="/dashboard" className="brand">SmartMotel Hub</Link>
           <div className="topbar-actions">
             <Link className="button button-ghost button-small" href="/listings">Tìm phòng</Link>
             <Link className="button button-ghost button-small" href="/notifications">Thông báo</Link>
@@ -116,8 +117,8 @@ export default function ComplaintsPage() {
         </nav>
 
         <header className={styles.header}>
-          <div><p className="eyebrow">PHASE 8 · TRUST & SAFETY</p><h1>Trung tâm báo cáo</h1><p className="muted">Báo cáo tin đăng có dấu hiệu sai lệch, lừa đảo hoặc không an toàn và theo dõi kết quả xử lý.</p></div>
-          <span className={`role-badge role-${profile.role.toLowerCase()}`}>{profile.role}</span>
+          <div><p className="eyebrow">TRUNG TÂM HỖ TRỢ & AN TOÀN</p><h1>Trung tâm hỗ trợ</h1><p className="muted">Gửi phản hồi về tin đăng hoặc vấn đề trong quá trình sử dụng và theo dõi kết quả xử lý.</p></div>
+          <span className={`role-badge role-${profile.role.toLowerCase()}`}>{roleLabel(profile.role)}</span>
         </header>
 
         {message && <div className={styles.alert}>{message}</div>}
@@ -141,7 +142,7 @@ export default function ComplaintsPage() {
                 <input className={styles.input} type="url" value={form.evidenceUrl} onChange={(event) => setForm((current) => ({ ...current, evidenceUrl: event.target.value }))} placeholder="https://..." />
               </label>
               <button className={styles.primary} disabled={busy || profile.role === "ADMIN"} type="submit">{busy ? "Đang gửi…" : "Gửi báo cáo"}</button>
-              {profile.role === "ADMIN" && <p className="muted">ADMIN xử lý báo cáo tại Admin Console, không tạo báo cáo mới.</p>}
+              {profile.role === "ADMIN" && <p className="muted">Quản trị viên xử lý phản hồi trong trung tâm quản trị và không tạo báo cáo mới tại đây.</p>}
             </form>
           </section>
 

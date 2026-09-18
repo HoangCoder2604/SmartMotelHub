@@ -20,9 +20,9 @@ export default function ForgotPasswordPage() {
     setError(null);
     setMessage(null);
     try {
-      if (!configured) throw new Error("Firebase Web chưa được cấu hình trong .env.");
+      if (!configured) throw new Error("Dịch vụ đăng nhập chưa sẵn sàng. Vui lòng thử lại sau hoặc liên hệ quản trị viên.");
       await sendPasswordResetEmail(getFirebaseAuth(), email.trim());
-      setMessage("Nếu email tồn tại, Firebase đã gửi hướng dẫn đặt lại mật khẩu.");
+      setMessage("Nếu email tồn tại, hướng dẫn đặt lại mật khẩu đã được gửi đến hộp thư của bạn.");
     } catch (err) {
       setError(humanizeAuthError(err));
     } finally {

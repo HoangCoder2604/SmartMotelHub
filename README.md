@@ -656,6 +656,10 @@ Booking
 Contract
 Invoice
 Payment
+LandlordWallet
+LandlordBankAccount
+LandlordWalletTransaction
+WithdrawalRequest
 Notification
 Complaint
 
@@ -681,7 +685,10 @@ User
              ├── Invoice
              │      │
              │      ▼
-             │    Payment
+             │    Payment ──► LandlordWallet ──► WithdrawalRequest
+             │                     │                    │
+             │                     ▼                    ▼
+             │            WalletTransaction      BankAccount
              │
              └── Notification
 
@@ -704,6 +711,8 @@ Ví dụ:
 /api/v1/contracts
 /api/v1/invoices
 /api/v1/payments
+/api/v1/landlord/wallet
+/api/v1/admin/withdrawals
 /api/v1/notifications
 /api/v1/complaints
 
@@ -1245,7 +1254,7 @@ integration testing.
 
 Phase 13 – Final Release
 
-Phase cuối cùng gồm 5 nhóm chính.
+Phase cuối cùng gồm 6 nhóm chính.
 
 13.1 Property Re-activation
 
@@ -1286,19 +1295,79 @@ Kết thúc hợp đồng
 
 Yêu cầu:
 
-chống notification trùng;
+chống notification trùng bằng `dedupe_key` theo contract + ngày hết hạn + mốc 30/7/1/0 + người nhận;
 
-cập nhật contract status;
+worker kiểm tra expiry khi API khởi động và theo chu kỳ (mặc định mỗi 1 giờ), đồng thời trang Contract gọi workflow như fallback;
 
-cập nhật room status;
+production/serverless có endpoint cron bảo vệ bằng `CRON_SECRET`: `GET /api/v1/internal/contracts/expiry`; nên gọi endpoint này mỗi ngày để bảo đảm mốc 30/7/1/0 vẫn chạy ngay cả khi API không có traffic;
 
-đảm bảo ownership/authorization.
+đúng ngày hết hạn: `ACTIVE → EXPIRED`;
 
-13.3 Favicon
+phòng của hợp đồng hết hạn: `RENTED → AVAILABLE`;
+
+listing đang `HIDDEN` của phòng hết hạn được trả về `DRAFT` để Landlord chủ động đăng lại;
+
+Tenant có thể chọn `RENEW` hoặc `NOT_RENEW`;
+
+Landlord chỉ gia hạn khi Tenant đã yêu cầu `RENEW`, ngày kết thúc mới phải lớn hơn ngày cũ;
+
+đảm bảo ownership/authorization và FCM push cho cả Tenant + Landlord.
+
+13.3 Landlord Wallet & Withdrawal
+
+Khi TENANT thanh toán hóa đơn qua VNPAY thành công, hệ thống tự động ghi nhận đúng số tiền vào ví nội bộ của LANDLORD sở hữu hợp đồng/hóa đơn.
+
+Luồng chính:
+
+TENANT thanh toán VNPAY
+  ↓
+Payment = SUCCEEDED
+  ↓
+Invoice = PAID
+  ↓
+Credit Landlord Wallet
+  ↓
+Landlord tạo yêu cầu rút
+  ↓
+Giữ chỗ số tiền đang chờ rút
+  ↓
+Admin chuyển khoản thực tế
+  ↓
+Admin APPROVE / REJECT
+
+LANDLORD có thể:
+
+- xem số dư ví;
+- xem số dư khả dụng;
+- xem tiền đang chờ rút;
+- thêm/cập nhật tài khoản ngân hàng;
+- tạo yêu cầu rút tiền;
+- xem lịch sử rút tiền và trạng thái xử lý.
+
+ADMIN có thể:
+
+- xem danh sách yêu cầu rút;
+- xem đầy đủ thông tin tài khoản ngân hàng của LANDLORD;
+- nhập mã giao dịch ngân hàng sau khi chuyển tiền;
+- chọn “Đã chuyển tiền & duyệt”;
+- từ chối và nhập lý do.
+
+Quy tắc số dư:
+
+- Payment VNPAY thành công mới được cộng ví;
+- callback VNPAY lặp lại không được cộng tiền hai lần;
+- yêu cầu rút sẽ giữ chỗ số tiền để tránh rút vượt số dư;
+- APPROVED: trừ balance, giải phóng pending withdrawal và tăng total withdrawn;
+- REJECTED: chỉ giải phóng pending withdrawal, không trừ balance;
+- các payment VNPAY thành công trước Phase 13 được migration backfill vào ví.
+
+Lưu ý: SmartMotel Hub hiện ghi nhận việc chuyển tiền bằng mã giao dịch do Admin nhập. Việc chuyển khoản ngân hàng thực tế vẫn do Admin thực hiện ngoài hệ thống, trừ khi sau này tích hợp thêm payout API của ngân hàng/payment provider.
+
+13.4 Favicon
 
 Dùng logo SmartMotel Hub hiện tại cho tab trình duyệt.
 
-13.4 Final QA
+13.5 Final QA
 
 Kiểm tra toàn bộ hệ thống.
 
@@ -1420,7 +1489,7 @@ Production
 
 Test trực tiếp trên Vercel.
 
-13.5 Final Documentation & Release
+13.6 Final Documentation & Release
 
 Hoàn thiện:
 
@@ -1545,6 +1614,38 @@ Payment = SUCCEEDED.
 Invoice = PAID.
 
 paidAt được lưu.
+
+Landlord Wallet & Withdrawal
+
+VNPAY thành công cộng đúng số tiền vào ví LANDLORD của hóa đơn.
+
+Callback VNPAY lặp lại không cộng tiền hai lần.
+
+Payment MANUAL không tự cộng vào ví VNPAY.
+
+Các payment VNPAY thành công cũ được backfill vào ví sau migration.
+
+Landlord thêm/cập nhật tài khoản ngân hàng.
+
+Không có tài khoản ngân hàng thì không thể rút tiền.
+
+Không thể tạo yêu cầu rút vượt số dư khả dụng.
+
+Tạo lệnh rút làm tăng pending withdrawal nhưng chưa trừ balance chính.
+
+Admin nhìn thấy lệnh rút và đầy đủ thông tin tài khoản nhận tiền.
+
+Admin duyệt bắt buộc nhập mã giao dịch ngân hàng.
+
+APPROVED trừ balance, giảm pending withdrawal và tăng total withdrawn.
+
+REJECTED giảm pending withdrawal nhưng không trừ balance.
+
+Một lệnh rút không thể được duyệt/từ chối lần thứ hai.
+
+Landlord nhận notification khi yêu cầu được duyệt hoặc từ chối.
+
+Admin nhận notification khi có yêu cầu rút mới.
 
 Notification
 
@@ -1717,3 +1818,12 @@ HoangCoder2604/SmartMotelHub
 SmartMotel Hub – Find. Rent. Manage.
 
 Một nền tảng thống nhất cho Tenant, Landlord và Admin trong toàn bộ vòng đời thuê trọ.
+
+
+### 13.6 Responsive UI polish
+
+- Tối ưu giao diện cho desktop, tablet và mobile, bao gồm các màn hình nhỏ khoảng 360px.
+- Sửa checkbox/radio toàn cục để không bị kéo `width: 100%` và che nội dung trên mobile.
+- Trang tìm phòng dùng layout filter, tiện ích, action và pagination responsive; tiện ích không còn che chữ.
+- Tối ưu touch target, form, card, bảng Admin, Contract, Appointment, Complaint, Analytics và Landlord Wallet/Withdrawal.
+- Input/select/textarea trên mobile dùng cỡ chữ phù hợp để tránh trình duyệt tự zoom khi focus.

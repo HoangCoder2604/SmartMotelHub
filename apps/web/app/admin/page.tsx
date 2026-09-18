@@ -7,6 +7,7 @@ import { useAuth } from "../../components/auth-provider";
 import { apiAssetUrl, apiFetch } from "../../lib/api";
 import styles from "./admin.module.css";
 import { SafeImage } from "../../components/safe-image";
+import { statusLabel, roleLabel } from "../../lib/ui-labels";
 
 type ListingStatus = "DRAFT" | "PENDING" | "APPROVED" | "REJECTED" | "HIDDEN";
 type UserRole = "TENANT" | "LANDLORD" | "ADMIN";
@@ -231,7 +232,7 @@ export default function AdminPage() {
 
       <header className={styles.header}>
         <div>
-          <p className="eyebrow">PHASE 4 · ADMIN MODERATION</p>
+          <p className="eyebrow">TRUNG TÂM QUẢN TRỊ</p>
           <h1>Admin Console</h1>
           <p className="muted">Duyệt tin thật, ghi lại người duyệt/lý do từ chối và quản lý trạng thái tài khoản.</p>
         </div>
@@ -288,7 +289,7 @@ export default function AdminPage() {
                         <p className="eyebrow">{listing.room.property.district} · {listing.room.property.city}</p>
                         <h2>{listing.title}</h2>
                       </div>
-                      <span className={`${styles.status} ${styles[listing.status.toLowerCase()]}`}>{listing.status}</span>
+                      <span className={`${styles.status} ${styles[listing.status.toLowerCase()]}`}>{statusLabel(listing.status)}</span>
                     </div>
                     <p className={styles.price}>{formatMoney(listing.room.price)} <span>/ tháng</span></p>
                     <p className="muted">{listing.description || "Không có mô tả."}</p>
@@ -348,7 +349,7 @@ export default function AdminPage() {
                 {users.map((user) => (
                   <tr key={user.id}>
                     <td><strong>{user.fullName}</strong><span>{user.email || user.phone || "—"}</span><small>Tạo {formatDate(user.createdAt)}</small></td>
-                    <td><span className={styles.role}>{user.role}</span></td>
+                    <td><span className={styles.role}>{roleLabel(user.role)}</span></td>
                     <td>{user.emailVerified ? "Email ✓" : "Email —"}</td>
                     <td>{user._count.ownedProperties} nhà trọ · {user._count.reviews} review</td>
                     <td>

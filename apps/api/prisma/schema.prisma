@@ -61,6 +61,12 @@ enum ContractStatus {
   TERMINATED
 }
 
+enum ContractRenewalIntent {
+  NONE
+  RENEW
+  NOT_RENEW
+}
+
 enum InvoiceStatus {
   UNPAID
   PAID
@@ -85,6 +91,17 @@ enum PaymentStatus {
   FAILED
   CANCELLED
   EXPIRED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum WalletTransactionType {
+  PAYMENT_CREDIT
+  WITHDRAWAL_DEBIT
 }
 
 model User {
@@ -116,6 +133,10 @@ model User {
   notifications         Notification[]
   pushDevices           PushDevice[]
   payments              Payment[]
+  landlordWallet        LandlordWallet?
+  landlordBankAccount   LandlordBankAccount?
+  withdrawalRequests    WithdrawalRequest[] @relation("LandlordWithdrawals")
+  reviewedWithdrawals   WithdrawalRequest[] @relation("AdminWithdrawalReviews")
 
   @@index([role])
   @@index([status])
@@ -323,8 +344,13 @@ model Contract {
   tenantAcceptedAt  DateTime?      @map("tenant_accepted_at") @db.Timestamptz(6)
   activatedAt       DateTime?      @map("activated_at") @db.Timestamptz(6)
   terminatedAt      DateTime?      @map("terminated_at") @db.Timestamptz(6)
-  terminationReason String?        @map("termination_reason") @db.Text
-  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  terminationReason   String?               @map("termination_reason") @db.Text
+  renewalIntent       ContractRenewalIntent  @default(NONE) @map("renewal_intent")
+  renewalRequestedAt  DateTime?              @map("renewal_requested_at") @db.Timestamptz(6)
+  renewalNote         String?                @map("renewal_note") @db.Text
+  previousEndDate     DateTime?              @map("previous_end_date") @db.Date
+  renewedAt           DateTime?              @map("renewed_at") @db.Timestamptz(6)
+  createdAt           DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
@@ -336,6 +362,7 @@ model Contract {
   @@index([roomId, status])
   @@index([tenantId, status])
   @@index([landlordId, status])
+  @@index([status, endDate])
   @@map("contracts")
 }
 
@@ -392,8 +419,9 @@ model Payment {
   createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt            DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  tenant  User    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  invoice           Invoice                      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  tenant            User                         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  walletTransaction LandlordWalletTransaction?
 
   @@index([invoiceId, status])
   @@index([tenantId, createdAt])
@@ -403,6 +431,90 @@ model Payment {
   @@map("payments")
 }
 
+model LandlordWallet {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId        String   @unique @map("landlord_id") @db.Uuid
+  balance           Decimal  @default(0) @db.Decimal(14, 2)
+  pendingWithdrawal Decimal  @default(0) @map("pending_withdrawal") @db.Decimal(14, 2)
+  totalReceived     Decimal  @default(0) @map("total_received") @db.Decimal(14, 2)
+  totalWithdrawn    Decimal  @default(0) @map("total_withdrawn") @db.Decimal(14, 2)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  landlord     User                        @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  transactions LandlordWalletTransaction[]
+
+  @@index([landlordId])
+  @@map("landlord_wallets")
+}
+
+model LandlordWalletTransaction {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  walletId            String                @map("wallet_id") @db.Uuid
+  type                WalletTransactionType
+  amount              Decimal               @db.Decimal(14, 2)
+  paymentId           String?               @unique @map("payment_id") @db.Uuid
+  withdrawalRequestId String?               @unique @map("withdrawal_request_id") @db.Uuid
+  description         String                @db.VarChar(500)
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  wallet            LandlordWallet     @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  payment           Payment?           @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  withdrawalRequest WithdrawalRequest? @relation(fields: [withdrawalRequestId], references: [id], onDelete: Restrict)
+
+  @@index([walletId, createdAt])
+  @@index([type, createdAt])
+  @@map("landlord_wallet_transactions")
+}
+
+model LandlordBankAccount {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId        String   @unique @map("landlord_id") @db.Uuid
+  bankCode          String   @map("bank_code") @db.VarChar(30)
+  bankName          String   @map("bank_name") @db.VarChar(150)
+  accountNumber     String   @map("account_number") @db.VarChar(50)
+  accountHolderName String   @map("account_holder_name") @db.VarChar(150)
+  branch            String?  @db.VarChar(150)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  landlord    User                @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  withdrawals WithdrawalRequest[]
+
+  @@map("landlord_bank_accounts")
+}
+
+model WithdrawalRequest {
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  landlordId        String           @map("landlord_id") @db.Uuid
+  bankAccountId     String           @map("bank_account_id") @db.Uuid
+  amount            Decimal          @db.Decimal(14, 2)
+  status            WithdrawalStatus @default(PENDING)
+  bankCode          String           @map("bank_code") @db.VarChar(30)
+  bankName          String           @map("bank_name") @db.VarChar(150)
+  accountNumber     String           @map("account_number") @db.VarChar(50)
+  accountHolderName String           @map("account_holder_name") @db.VarChar(150)
+  branch            String?          @db.VarChar(150)
+  transferReference String?          @map("transfer_reference") @db.VarChar(120)
+  adminNote         String?          @map("admin_note") @db.Text
+  rejectionReason   String?          @map("rejection_reason") @db.Text
+  reviewedByAdminId String?          @map("reviewed_by_admin_id") @db.Uuid
+  requestedAt       DateTime         @default(now()) @map("requested_at") @db.Timestamptz(6)
+  reviewedAt        DateTime?        @map("reviewed_at") @db.Timestamptz(6)
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  landlord          User                       @relation("LandlordWithdrawals", fields: [landlordId], references: [id], onDelete: Restrict)
+  bankAccount       LandlordBankAccount        @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
+  reviewedByAdmin   User?                      @relation("AdminWithdrawalReviews", fields: [reviewedByAdminId], references: [id], onDelete: SetNull)
+  walletTransaction LandlordWalletTransaction?
+
+  @@index([landlordId, requestedAt])
+  @@index([status, requestedAt])
+  @@index([reviewedByAdminId, reviewedAt])
+  @@map("withdrawal_requests")
+}
+
 model Notification {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId    String    @map("user_id") @db.Uuid
@@ -410,6 +522,7 @@ model Notification {
   title     String    @db.VarChar(200)
   message   String    @db.Text
   href      String?   @db.Text
+  dedupeKey String?   @unique @map("dedupe_key") @db.VarChar(180)
   readAt    DateTime? @map("read_at") @db.Timestamptz(6)
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
